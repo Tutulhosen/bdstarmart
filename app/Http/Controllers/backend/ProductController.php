@@ -74,7 +74,8 @@ class ProductController extends Controller
 
     //product create page
     public function productCreate(){
-        $data['category']=DB::table('category')->whereNotIn('id', [1,4])->where('status', 1)->get();
+        $data['category']=DB::table('category')->where('status', 1)->get();
+        $data['size']=DB::table('size')->where('status', 1)->get();
         return view('admin.product.create')->with($data);
     }
 
@@ -83,13 +84,15 @@ class ProductController extends Controller
         $title = $request->input('title');
         $productCode = $request->input('product_code');
         $category_id = $request->input('category_id');
+        $sub_category_id = $request->input('sub_category_id');
+        $size = $request->input('size');
         $description = $request->input('description');
         $price = $request->input('price');
         $discount = $request->input('discount');
         $quantity = $request->input('quantity');
-        
+        $sizeJson = json_encode($size);
        
-        // dd($request->all());
+        
         // For single file uploads
         if ($request->hasFile('thumbnail_image')) {
             $thumbnailImage = $request->file('thumbnail_image');
@@ -100,19 +103,22 @@ class ProductController extends Controller
         }else {
             $imageName=null;
         }
+      
         try {
             DB::beginTransaction();
             $product_id= DB::table('products')->insertGetId([
                 'product_code' =>$productCode,
                 'title' =>$title,
                 'category_id' =>$category_id,
+                'sub_category' =>$sub_category_id,
+                'size' =>$sizeJson,
                 'quantity' =>$quantity,
                 'price' =>$price,
                 'discount' =>$discount,
                 'description' =>$description,
                 'thumbnail' =>$imageName,
             ]);
-
+            
             if ($product_id) {
                 // For multiple file uploads
                 if ($request->hasFile('gallery_images')) {
@@ -155,9 +161,9 @@ class ProductController extends Controller
         $data['category']=DB::table('category')->get();
         $data['product_list']=DB::table('products')->where('id', $id)->first();
         $data['gallery']=DB::table('gallery')->where('product_id', $data['product_list']->id)->select('image_name')->get();
+        $data['size']=DB::table('size')->where('status', 1)->get();
         
-        
-       
+        $data['size_arr']=json_decode(json_decode($data['product_list']->size));
         return view('admin.product.edit')->with($data);
     }
 
@@ -168,11 +174,14 @@ class ProductController extends Controller
         $title = $request->input('title');
         $productCode = $request->input('product_code');
         $category_id = $request->input('category_id');
+        $sub_category_id = $request->input('sub_category_id');
+        $size = $request->input('size');
         $description = $request->input('description');
         $price = $request->input('price');
         $discount = $request->input('discount');
         $quantity = $request->input('quantity');
-
+        $sizeJson = json_encode($size);
+       
         if ($type=='update') {
             $previousImageName = DB::table('products')->where('id', $product_id)->value('thumbnail');
     
@@ -199,6 +208,8 @@ class ProductController extends Controller
                     'product_code' =>$productCode,
                     'title' =>$title,
                     'category_id' =>$category_id,
+                    'sub_category' =>$sub_category_id,
+                    'size' =>$sizeJson,
                     'quantity' =>$quantity,
                     'price' =>$price,
                     'discount' =>$discount,
@@ -266,6 +277,8 @@ class ProductController extends Controller
                     'product_code' =>$productCode,
                     'title' =>$title,
                     'category_id' =>$category_id,
+                    'sub_category' =>$sub_category_id,
+                    'size' =>$sizeJson,
                     'quantity' =>$quantity,
                     'price' =>$price,
                     'discount' =>$discount,
@@ -396,6 +409,11 @@ class ProductController extends Controller
 
     }
 
-
+    public function getSubcategories($categoryId)
+    {
+        $subcategories =DB::table('subcategory')->where('category_id', $categoryId)->get();
+    
+        return response()->json($subcategories);
+    }
 
 }

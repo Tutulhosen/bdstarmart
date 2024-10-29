@@ -17,6 +17,8 @@
         }
     </style>
     <div class="container p-3">
+        <a class="btn btn-primary" href="{{route('admin.order.create')}}">Add New</a>             
+
         <div class="card" style="padding: 10px; background-color:#e4e6e8">
             <div class="row">
                 <div class="col-12">
@@ -96,7 +98,7 @@
                                             <td>{{$order->full_name}}</td>
                                             <td>{{$order->total_price}}</td>
                                             <td>{{$order->phone_number}}</td>
-                                            <td style="text-align:center"><a href="{{route('product.invoice', $order->id)}}" target="_blank"><i id="invoice" class="fa-solid fa-file-lines" style="font-size: 30px; text-align:center; cursor:pointer; color:green"></i></a></td>
+                                            <td style="text-align:center"><a href="{{route('admin.order.invoice', $order->id)}}" target="_blank"><i id="invoice" class="fa-solid fa-file-lines" style="font-size: 30px; text-align:center; cursor:pointer; color:green"></i></a></td>
                                             <?php 
                                                 $color=' ';
                                                 $bg_color=' ';
@@ -135,6 +137,7 @@
                                                 <div class="dropdown-menu">
                                                     {{-- <a class="dropdown-item" href=""><i class="bx bx-edit-alt me-1"></i> Edit</a> --}}
                                                     @if ($order->order_status==0)
+                                                        <a class="dropdown-item" href="{{ route('admin.order.edit', $order->order_code) }}">Edit</a>
                                                         <a class="dropdown-item" href="javascript:void(0);" id="accept_btn" data-id="{{$order->order_code}}" data-type="accept">Accept</a>
                                                         <a class="dropdown-item" href="javascript:void(0);" id="cancel_btn" data-id="{{$order->order_code}}" data-type="cancel">Cancel</a>
                                                     @endif
@@ -142,6 +145,8 @@
                                                     <p style="color: red">Cancel</p>
                                                     @endif
                                                     @if ($order->order_status==2)
+                                                        <a class="dropdown-item" href="{{ route('admin.order.edit', $order->order_code) }}">Edit</a>
+
                                                         <a class="dropdown-item" href="javascript:void(0);" id="on_delivery_btn" data-id="{{$order->order_code}}" data-type="on_delivery">On Delivery</a>
                                                         @if (empty($is_order_placed))
                                                         <a class="dropdown-item" href="" id="place_order_btn" data-id="{{$order->id}}" data-type="on_delivery">Place Order</a>
@@ -350,6 +355,11 @@
                                     <td>${order.full_name}</td>
                                     <td>${order.total_price}</td>
                                     <td>${order.phone_number}</td>
+                                    <td style="text-align:center">
+                                        <a href="/admin/order/invoice/${order.id}" target="_blank">
+                                            <i class="fa-solid fa-file-lines" style="font-size: 30px; text-align:center; cursor:pointer; color:green"></i>
+                                        </a>
+                                    </td>
                                     <td>
                                         <button style="border-radius: 5px; color:${color}; background-color:${bg_color}; border:2px solid ${bg_color}">
                                             ${orderStatusMap[order.order_status]} <!-- Use the orderStatusMap here -->

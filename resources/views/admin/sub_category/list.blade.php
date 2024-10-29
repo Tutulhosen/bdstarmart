@@ -1,91 +1,69 @@
-@extends('backend.layout.app')
+@extends('admin.layout.app')
 
 
 @section('main-content')
-<a class="btn btn-success" href="{{route('admin.sub.cat.create')}}">+ Create New SubCategory</a>
-   <div class="row">
-    <div class="main-panel" style="padding-top:0px; !importent">
-        <div class="content-wrapper">
-          
-          <div class="row">
-            <div class="col-lg-12 grid-margin stretch-card">
-              <div class="card">
-                <div class="card-body">
-                    <h2 class="card-title" style="text-align:center">SubCategoty List</h2>
-                  
-                  </p>
-                  <div class="table-responsive">
-                    <table class="table">
-                      <thead>
-                        <tr>
-                          <th>SL</th>
-                          <th>Name</th>
-                          <th>Category</th>
-                          <th>Image</th>
-                          <th>Status</th>
-                          <th>Action</th>
-                        </tr>
-                      </thead>
-                      <tbody >
-                        @foreach ($sub_category_list as $subcategory)
-                        <tr>
-                            <td>{{$loop->index+1}}</td>
-                            <td>{{$subcategory->name}}</td>
-                            <td>{{get_category_name($subcategory->category_id)}}</td>
-                            <td><img style="height: 50px;width:50px; object-fit:cover"  src="{{asset('images/subcategories/'.$subcategory->image)}}" alt=""></td>
-                            <td>
-                                @if ($subcategory->status==1)
-                                 <label class="badge badge-success">Active</label>
-                                @endif
-                                @if ($subcategory->status==0)
-                                 <label class="badge badge-danger">Deactivate</label>
-                                @endif
-                              
-                              
-                            </td>
-                            
-                            <td>
-                              <div style="display: flex; gap: 10px;">
-                                  <a href="{{ route('admin.sub.cat.update.page', $subcategory->id) }}" style="display: flex; justify-content: center; align-items: center; height: 30px; width: 30px; border-radius: 50%; background-color: rgb(125, 168, 209);">
-                                      <i class="fa-solid fa-pen-to-square" style="color: blue; font-size: 16px;"></i>
-                                  </a>
-                                  <button value="{{$subcategory->id}}" style="display: flex; justify-content: center; align-items: center; height: 30px; width: 30px;    border-radius: 50%; background-color: rgb(125, 168, 209);" id="sub_cat_dlt_btn">
-                                      <i class="fa-solid fa-trash" style="color: red; font-size: 16px;"></i>
-                                  </button>
-                                  @if ($subcategory->status==1)
-                                    <button value="{{$subcategory->id}}" style="display: flex; justify-content: center; align-items: center; height: 30px; width: 30px; border-radius: 50%; background-color: rgb(125, 168, 209);" id="active_btn">
-                                        <i class="fa-solid fa-toggle-on" style="color: green; font-size: 18px;"></i>
-                                    </button>
-                                  @endif
-                                  @if ($subcategory->status==0)
-                                    <button value="{{$subcategory->id}}" style="display: flex; justify-content: center; align-items: center; height: 30px; width: 30px; border-radius: 50%; background-color: rgb(125, 168, 209);" id="deactivate_btn">
-                                        <i class="fa-solid fa-toggle-off" style="color: red; font-size: 18px;"></i>
-                                    </button>
-                                  @endif
-                                  
-                                  
-                              </div>
-                              
-                              
-                              
-                            </td>
-                          </tr>
-                        @endforeach
+<div class="container p-5">
+    <div class="row">
+        <div class="col-1"></div>
+        <div class="col-10">
+            <a class="btn btn-primary" href="{{route('admin.sub.cat.create')}}">Add New</a>
+            <div class="card">
+                <h3 class="card-header text-center bg-success text-white">Sub-Categoty List</h3>
+                <div class="table-responsive text-nowrap">
+                  <table class="table text-center">
+                    <thead class="table-light">
+                      <tr>
+                        <th>SL</th>
+                        <th>Name</th>
+                        <th>Categoty</th>
+                        <th>Status</th>
+                        <th>Actions</th>
                         
-                        
-                      </tbody>
-                    </table>
-                  </div>
+                      </tr>
+                    </thead>
+                    <tbody class="table-border-bottom-0">
+                            @foreach ($sub_category_list as $item)
+                                <tr>
+                                    <td>{{$loop->index+1}}</td>
+                                    <td>{{$item->name}}</td>
+                                    <td>{{get_category_name($item->category_id)}}</td>
+                                    <td>
+                                        @if ($item->status==1)
+                                            <a style="cursor: pointer" id="active_btn" data-id="{{$item->id}}"><span class="badge bg-label-primary me-1">Active</span></a>
+                                        @endif
+                                        @if ($item->status==0)
+                                        <a style="cursor: pointer" id="deactivate_btn" data-id="{{$item->id}}"><span class="badge bg-label-danger me-1">InActive</span></a>
+                                        @endif
+                                      
+                                      
+                                    </td>
+                                    <td>
+                                        <div class="dropdown">
+                                          <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                                            <i class="bx bx-dots-vertical-rounded"></i>
+                                          </button>
+                                          <div class="dropdown-menu">
+                                            <a class="dropdown-item" href="{{ route('admin.sub.cat.update.page', $item->id) }}"><i class="bx bx-edit-alt me-1"></i> Edit</a>
+                                            <a class="dropdown-item" href="javascript:void(0);" id="cat_dlt_btn" data-id="{{$item->id}}"><i class="bx bx-trash me-1"></i> Delete</a>
+                                          </div>
+                                        </div>
+                                      </td>
+                                </tr>
+                            @endforeach
+                    </tbody>
+                  </table>
                 </div>
-              </div>
+                <div class="row mt-md-4 mt-2 pagination" style="width: 100%; margin:auto">
+                    <div class="col-5"></div>
+                    <div class="col-4" >
+                        
+                        {!! $sub_category_list->links('pagination::bootstrap-4') !!}
+                    </div>
+                </div>
             </div>
-            
-          </div>
         </div>
-        
-        <!-- partial -->
-      </div>
-   </div>
+    </div>
+</div>
 @endsection
 @section('scripts')
     
@@ -94,8 +72,8 @@
     
     $(document).ready(function(){
         
-        //delete sub category
-        $(document).on('click', '#sub_cat_dlt_btn', function(){
+        //delete category
+        $(document).on('click', '#cat_dlt_btn', function(){
             Swal.fire({
                 title: "<div style='color: black;'>Are you sure?</div>",
                 icon: "warning",
@@ -104,16 +82,16 @@
                 cancelButtonColor: "#d33",
                 confirmButtonText: "Yes, delete it!",
                 customClass: {
-                    popup: 'swal-small', // Apply custom class to the popup
-                    title: 'swal-title-small', // Apply custom class to the title
-                    cancelButton: 'swal-cancel-button-small', // Apply custom class to the cancel button
-                    confirmButton: 'swal-confirm-button-small' // Apply custom class to the confirm button
+                    popup: 'swal-small', 
+                    title: 'swal-title-small', 
+                    cancelButton: 'swal-cancel-button-small', 
+                    confirmButton: 'swal-confirm-button-small' 
                 }
                 }).then((result) => {
                 if (result.isConfirmed) {
-                    let id= $(this).val();
+                    let id= $(this).data('id');
                    
-
+                   
                     $.ajax({
                        
                         url:"delete/" +id,
@@ -125,7 +103,7 @@
                                 
                                 Swal.fire({
                                     title: "<div style='color: black;'>Deleted</div>",
-                                    text: "Successfully Delete A Sub Category",
+                                    text: "Successfully Delete",
                                     icon: "success"
                                 });
                                 $(".table").load(" .table");
@@ -152,8 +130,9 @@
 
         //click for deactivate
         $(document).on('click', '#active_btn', function(){
+            
             Swal.fire({
-                title: "<div style='color: black;'>Are you sure?</div>",
+                title: "<div style='color: black;'>Are you sure to InActive ?</div>",
                 icon: "warning",
                 showCancelButton: true,
                 confirmButtonColor: "#3085d6",
@@ -161,15 +140,15 @@
                 confirmButtonText: "Confirm !"
             }).then((result) => {
                 if (result.isConfirmed) {
-                    let id= $(this).val();
-
+                    let id= $(this).data('id');
+                 
                     $.ajax({
                         url:"status/update/" +id,
                         method: 'GET',
                         success: function(response) {
                             if (response.status==true) {
                                 Swal.fire({
-                                    title: "<div style='color: black;'>Successfully Deactive A Category</div>",
+                                    title: "<div style='color: black;'>Successfully InActive</div>",
                                     icon: "success"
                                 });
                                 $(".table").load(" .table");
@@ -189,7 +168,7 @@
         //click for Active
         $(document).on('click', '#deactivate_btn', function(){
             Swal.fire({
-                title: "<div style='color: black;'>Are you sure?</div>",
+                title: "<div style='color: black;'>Are you sure to Active ?</div>",
                 icon: "warning",
                 showCancelButton: true,
                 confirmButtonColor: "#3085d6",
@@ -197,7 +176,7 @@
                 confirmButtonText: "Confirm !"
             }).then((result) => {
                 if (result.isConfirmed) {
-                    let id= $(this).val();
+                    let id= $(this).data('id');
 
                     $.ajax({
                         url:"status/update/" +id,
@@ -205,7 +184,7 @@
                         success: function(response) {
                             if (response.status==true) {
                                 Swal.fire({
-                                    title: "<div style='color: black;'>Successfully Active A Category</div>",
+                                    title: "<div style='color: black;'>Successfully Active </div>",
                                     icon: "success"
                                 });
                                 $(".table").load(" .table");

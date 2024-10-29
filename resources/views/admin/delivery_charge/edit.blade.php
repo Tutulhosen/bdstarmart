@@ -10,17 +10,26 @@
                     <div class="card">
                         <div class="card-body">
                             <div class="headline">
-                                <h3 class="text-center">Update Category</h3>
+                                <h3 class="text-center">Update</h3>
                             </div>
                             <br>
                             <form class="forms-sample" id="myform">
                                 @csrf
                                 <div class="form-group">
-                                    <label for="name">Category Name</label>
-                                    <input type="text" class="form-control" id="name" value="{{$category_info->name}}" placeholder="Username">
+                                    <label for="name_en">Title(English)</label>
+                                    <input type="text" class="form-control" id="name_en" value="{{$delivery_charge_info->name_en}}" placeholder="Username">
+                                </div><br>
+                                <div class="form-group">
+                                    <label for="name_bn">Title(Bangla)</label>
+                                    <input type="text" class="form-control" id="name_bn" value="{{$delivery_charge_info->name_bn}}" placeholder="Username">
+                                </div><br>
+                                <div class="form-group">
+                                    <label for="delivery_charge">Delivery Charge</label>
+                                    <input type="text" class="form-control" id="delivery_charge" value="{{$delivery_charge_info->charge}}" placeholder="Username">
                                 </div>
+                               
                                 <br>
-                                <button type="button" class="btn btn-success mr-2" id="cat_update_btn" value="{{$category_info->id}}">Submit</button>
+                                <button type="button" class="btn btn-success mr-2" id="update_btn" value="{{$delivery_charge_info->id}}">Submit</button>
                                 <button class="btn btn-dark">Cancel</button>
                             </form>
                         </div>
@@ -41,26 +50,37 @@
 
     $(document).ready(function(){
         
-        $('#cat_update_btn').on('click', function(){
-        let name = $('#name').val();
+        $('#update_btn').on('click', function(){
+        let name_en = $('#name_en').val();
+        let name_bn = $('#name_bn').val();
+        let delivery_charge = $('#delivery_charge').val();
         let id = $(this).val();
-       
         
 
-        if (name == '') {
-            showToast('Enter A Category Name', 'error');
+        if (name_en == '') {
+            showToast('Enter A Title In English', 'error');
+            return; 
+        }
+        if (name_bn == '') {
+            showToast('Enter A Title In Bangla', 'error');
+            return; 
+        }
+        if (delivery_charge == '') {
+            showToast('Enter A Delivery Charge', 'error');
             return; 
         }
 
         
 
         let formData = new FormData();
-        formData.append('name', name);
+        formData.append('name_en', name_en);
+        formData.append('name_bn', name_bn);
+        formData.append('delivery_charge', delivery_charge);
         formData.append('id', id);
         formData.append('_token', '{{ csrf_token() }}'); 
 
         $.ajax({
-            url: '{{ route('admin.category.update') }}', 
+            url: '{{ route('admin.delivery.charge.update') }}', 
             method: 'POST',
             data: formData,
             contentType: false, 
@@ -71,7 +91,7 @@
                     showToast(response.success, 'success');
                     setTimeout(function() {
                         // Redirect to the list page
-                        window.location.href = '/admin/category/list';  
+                        window.location.href = '/admin/delivery/charge/list';  
                     }, 1500);
                     
                 }

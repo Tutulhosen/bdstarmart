@@ -20,6 +20,13 @@ use App\Http\Controllers\backend\AdminDashboardController;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+Route::get('/clear-all', function() {
+    Artisan::call('config:clear');
+    Artisan::call('cache:clear');
+    Artisan::call('view:clear');
+    Artisan::call('route:clear');
+    return "Cache is cleared";
+});
 Route::get('/clear-cache', function() {
     $exitCode = Artisan::call('cache:clear');
     return '<h1>Cache facade value cleared</h1>';

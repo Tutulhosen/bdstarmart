@@ -2,29 +2,32 @@
 
 
 @section('main-content')
-<div class="container p-5">
+<div class="container pt-5">
     <div class="row">
         <div class="col-1"></div>
         <div class="col-10">
-            <a class="btn btn-primary" href="{{route('admin.category.page')}}">Add New</a>
+            <a class="btn btn-primary" href="{{route('admin.size.create')}}">Add New</a>
             <div class="card">
-                <h3 class="card-header text-center bg-success text-white">Categoty List</h3>
+                <h3 class="card-header text-center bg-success text-white"> List</h3>
                 <div class="table-responsive text-nowrap">
                   <table class="table text-center">
                     <thead class="table-light">
                       <tr>
                         <th>SL</th>
-                        <th>Name</th>
+                        <th>Size</th>
+                     
                         <th>Status</th>
                         <th>Actions</th>
                         
                       </tr>
                     </thead>
                     <tbody class="table-border-bottom-0">
-                            @foreach ($category_list as $item)
+                        
+                            @foreach ($list as $item)
                                 <tr>
                                     <td>{{$loop->index+1}}</td>
-                                    <td>{{$item->name}}</td>
+                                    <td>{{$item->size}}</td>
+                                    
                                     <td>
                                         @if ($item->status==1)
                                             <a style="cursor: pointer" id="active_btn" data-id="{{$item->id}}"><span class="badge bg-label-primary me-1">Active</span></a>
@@ -41,8 +44,8 @@
                                             <i class="bx bx-dots-vertical-rounded"></i>
                                           </button>
                                           <div class="dropdown-menu">
-                                            <a class="dropdown-item" href="{{ route('admin.category.update.page', $item->id) }}"><i class="bx bx-edit-alt me-1"></i> Edit</a>
-                                            <a class="dropdown-item" href="javascript:void(0);" id="cat_dlt_btn" data-id="{{$item->id}}"><i class="bx bx-trash me-1"></i> Delete</a>
+                                            <a class="dropdown-item" href="{{ route('admin.size.update.page', $item->id) }}"><i class="bx bx-edit-alt me-1"></i> Edit</a>
+                                            <a class="dropdown-item" href="javascript:void(0);" id="dlt_btn" data-id="{{$item->id}}"><i class="bx bx-trash me-1"></i> Delete</a>
                                           </div>
                                         </div>
                                       </td>
@@ -50,13 +53,6 @@
                             @endforeach
                     </tbody>
                   </table>
-                </div>
-                <div class="row mt-md-4 mt-2 pagination" style="width: 100%; margin:auto">
-                    <div class="col-5"></div>
-                    <div class="col-4" >
-                        
-                        {!! $category_list->links('pagination::bootstrap-4') !!}
-                    </div>
                 </div>
             </div>
         </div>
@@ -71,7 +67,7 @@
     $(document).ready(function(){
         
         //delete category
-        $(document).on('click', '#cat_dlt_btn', function(){
+        $(document).on('click', '#dlt_btn', function(){
             Swal.fire({
                 title: "<div style='color: black;'>Are you sure?</div>",
                 icon: "warning",
@@ -101,7 +97,7 @@
                                 
                                 Swal.fire({
                                     title: "<div style='color: black;'>Deleted</div>",
-                                    text: "Successfully Delete A Category",
+                                    text: "Successfully Delete",
                                     icon: "success"
                                 });
                                 $(".table").load(" .table");
@@ -130,7 +126,7 @@
         $(document).on('click', '#active_btn', function(){
             
             Swal.fire({
-                title: "<div style='color: black;'>Are you sure to InActive this Category?</div>",
+                title: "<div style='color: black;'>Are you sure to InActive ?</div>",
                 icon: "warning",
                 showCancelButton: true,
                 confirmButtonColor: "#3085d6",
@@ -146,14 +142,14 @@
                         success: function(response) {
                             if (response.status==true) {
                                 Swal.fire({
-                                    title: "<div style='color: black;'>Successfully InActive The Category</div>",
+                                    title: "<div style='color: black;'>Successfully InActive </div>",
                                     icon: "success"
                                 });
                                 $(".table").load(" .table");
                             }
                             if (response.status==false) {
                                 Swal.fire({
-                                    title: "<div style='color: black;'>Something went wrong</div>",
+                                    title: `<div style='color: black;'>${response.message}</div>`,
                                     icon: "warning"
                                 });
                             }
@@ -166,7 +162,7 @@
         //click for Active
         $(document).on('click', '#deactivate_btn', function(){
             Swal.fire({
-                title: "<div style='color: black;'>Are you sure to Active this Category?</div>",
+                title: "<div style='color: black;'>Are you sure to Active ?</div>",
                 icon: "warning",
                 showCancelButton: true,
                 confirmButtonColor: "#3085d6",
@@ -182,14 +178,14 @@
                         success: function(response) {
                             if (response.status==true) {
                                 Swal.fire({
-                                    title: "<div style='color: black;'>Successfully Active The Category</div>",
+                                    title: "<div style='color: black;'>Successfully Active</div>",
                                     icon: "success"
                                 });
                                 $(".table").load(" .table");
                             }
                             if (response.status==false) {
                                 Swal.fire({
-                                    title: "<div style='color: black;'>Something went wrong</div>",
+                                    title: `<div style='color: black;'>${response.message}</div>`,
                                     icon: "warning"
                                 });
                             }

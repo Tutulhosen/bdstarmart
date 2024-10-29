@@ -193,35 +193,27 @@ class AdminDashboardController extends Controller
     //show sub category list
     public function subcategoryList(){
         $data['category_list']=DB::table('category')->get();
-        $data['sub_category_list']=DB::table('subcategory')->get();
+        $data['sub_category_list']=DB::table('subcategory')->paginate(10);
         // return $data['category_list'];exit;
-        return view('backend.sub_category.list')->with($data);
+        return view('admin.sub_category.list')->with($data);
     }
 
     //sub category create form 
     public function subCatCreate(){
         $data['category_list']=DB::table('category')->get();
-        return view("backend.sub_category.create")->with($data);
+        return view("admin.sub_category.create")->with($data);
     }
 
-    // store category
+    // store sub category
     public function subcategoryStore(Request $request){
-        $imageName=null;
-        $image = $request->file('image');
+       
         $name = $request->name;
-        $category_id = $request->category_id;
-        if (!empty($image)) {
-            $imageName = md5(time().'_'.rand()).'.'.$image->getClientOriginalExtension();
-            $image->move(public_path('images/subcategories'), $imageName);
-        } else {
-            $imageName=null;
-        }
-
+        $category_id = $request->category;
+        
        $insert= DB::table('subcategory')->insert([
             'name' =>$name,
             'category_id' =>$category_id,
-            'image' =>$imageName,
-            'slug' =>Str::slug($name),
+
         ]);
         if ($insert) {
            return response()->json([
@@ -243,49 +235,21 @@ class AdminDashboardController extends Controller
         $data['sub_category_info']=DB::table('subcategory')->where('id', $id)->first();
         $data['category_list']=DB::table('category')->get();
         
-        return view('backend.sub_category.edit')->with($data);
+        return view('admin.sub_category.edit')->with($data);
     }
 
     // update sub category
     public function subcategoryUpdate(Request $request){
             
-        $previousImageName = DB::table('subcategory')->where('id', $request->id)->value('image');
-
-        $imageName = null;
-        $image = $request->file('image');
+        
         $name = $request->name;
-        $category_id = $request->category_id;
+        $category_id = $request->category;
 
-        if (!empty($image)) {
+        $update = DB::table('subcategory')->where('id', $request->id)->update([
+            'name' => $name,
+            'category_id' => $category_id,
             
-            $imageName = md5(time().'_'.rand()).'.'.$image->getClientOriginalExtension();
-            
-            $image->move(public_path('images/subcategories'), $imageName);
-            
-            if (!empty($previousImageName)) {
-                $previousImagePath = public_path('images/subcategories') . '/' . $previousImageName;
-                if (file_exists($previousImagePath)) {
-                    unlink($previousImagePath);
-                }
-            }
-
-            // Update the category record in the database
-            $update = DB::table('subcategory')->where('id', $request->id)->update([
-                'name' => $name,
-                'category_id' => $category_id,
-                'image' => $imageName,
-                'slug' => Str::slug($name),
-            ]);
-        }else {
-            // Update the category record in the database
-            $update = DB::table('subcategory')->where('id', $request->id)->update([
-                'name' => $name,
-                'category_id' => $category_id,
-                'slug' => Str::slug($name),
-            ]);
-        }
-
-    
+        ]);
 
         if ($update) {
             return response()->json([
@@ -302,11 +266,7 @@ class AdminDashboardController extends Controller
 
      //delete sub category
      public function subcategoryDelete($id){
-        $previousImageName = DB::table('subcategory')->where('id', $id)->value('image');
-        $previousImagePath = public_path('images/subcategories') . '/' . $previousImageName;
-        if (file_exists($previousImagePath)) {
-            unlink($previousImagePath);
-        }
+        
         $delete=DB::table('subcategory')->where('id', $id)->delete();
         if ($delete) {
             return response([

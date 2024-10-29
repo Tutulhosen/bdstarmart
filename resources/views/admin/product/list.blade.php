@@ -2,6 +2,7 @@
 
 
 @section('main-content')
+
 <style>
     .form-inline {
         display: flex;
@@ -15,9 +16,12 @@
     }
 </style>
 <div class="container p-3" style="padding-bottom: 20px">
+    <a class="btn btn-primary" href="{{route('admin.product.create')}}">Add New</a>             
+
     <div class="card" style="padding: 10px; background-color:#e4e6e8">
         <div class="row">
             <div class="col-12">
+                
                 <form id="search-form">
                     <div class="form-inline">
                         <div class="form-group">
@@ -42,7 +46,6 @@
                         </div>
                     </div>
                 </form>
-                                
             </div>
         </div>
     </div>

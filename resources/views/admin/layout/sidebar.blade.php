@@ -1,3 +1,7 @@
+<?php
+    $logo= DB::table('logo')->where('status', 1)->first();
+    $admin= DB::table('users')->where('role_id', 1)->first();
+?>
 <style>
   .menu-link {
     text-decoration: none !important;
@@ -11,7 +15,12 @@
 <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
   <div class="app-brand demo">
     <a href="{{route('admin.dashboard.index')}}" class="app-brand-link" style="">
-      <img style="width: 200px" src="{{asset('green.png')}}" alt="">
+      @if ($logo->image)
+      <a href="{{route('admin.dashboard.index')}}"><img src="{{asset('images/logo/' . $logo->image)}}" alt="" style="width: 200px"></a>
+      @else
+      <a href="{{route('admin.dashboard.index')}}"><img src="{{asset('frontend/uploads/6649146b6febe.png')}}" alt="" style="width: 200px"></a>
+      @endif
+      
     </a>
 
     <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none">
@@ -73,6 +82,48 @@
       </ul>
     </li>
 
+    <!-- Sub Category -->
+    <li class="menu-item">
+      <a href="javascript:void(0);" class="menu-link menu-toggle">
+        <i class="menu-icon fa-solid fa-list"></i>
+        <div class="text-truncate" data-i18n="Layouts">Sub Category</div>
+      </a>
+
+      <ul class="menu-sub">
+        <li class="menu-item">
+          <a href="{{route('admin.sub.cat.create')}}" class="menu-link">
+            <div class="text-truncate" data-i18n="Without menu">Add New</div>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="{{route('admin.sub.cat.list')}}" class="menu-link">
+            <div class="text-truncate" data-i18n="Without navbar">List</div>
+          </a>
+        </li>
+      </ul>
+    </li>
+
+     <!-- Size -->
+     <li class="menu-item">
+      <a href="javascript:void(0);" class="menu-link menu-toggle">
+        <i class="menu-icon fa-solid fa-list"></i>
+        <div class="text-truncate" data-i18n="Layouts">Size</div>
+      </a>
+
+      <ul class="menu-sub">
+        <li class="menu-item">
+          <a href="{{route('admin.size.create')}}" class="menu-link">
+            <div class="text-truncate" data-i18n="Without menu">Add New</div>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="{{route('admin.size.list')}}" class="menu-link">
+            <div class="text-truncate" data-i18n="Without navbar">List</div>
+          </a>
+        </li>
+      </ul>
+    </li>
+
     <!-- Product -->
     <li class="menu-item">
       <a href="javascript:void(0);" class="menu-link menu-toggle">
@@ -102,11 +153,11 @@
       </a>
 
       <ul class="menu-sub">
-        {{-- <li class="menu-item">
-          <a href="" class="menu-link">
+        <li class="menu-item">
+          <a href="{{route('admin.order.create')}}" class="menu-link">
             <div class="text-truncate" data-i18n="Without menu">Add New</div>
           </a>
-        </li> --}}
+        </li>
         <li class="menu-item">
           <a href="{{route('admin.order.list')}}" class="menu-link">
             <div class="text-truncate" data-i18n="Without navbar">List</div>
@@ -136,6 +187,11 @@
         <li class="menu-item">
           <a href="{{route('admin.social_link.list')}}" class="menu-link">
             <div class="text-truncate" data-i18n="Without menu">Social Link</div>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="{{route('admin.delivery.charge.list')}}" class="menu-link">
+            <div class="text-truncate" data-i18n="Without menu">Delivery Charge</div>
           </a>
         </li>
        

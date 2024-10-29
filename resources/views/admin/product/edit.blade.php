@@ -20,11 +20,11 @@
                             <div class="form-group">
                                 <label for="product_code">Product Code</label>
                                 <input type="text" class="form-control" id="product_code" value="{{$product_list->product_code}}" placeholder="Product code">
-                            </div>
+                            </div><br>
                             <div class="form-group">
                                 <label for="title">Title</label>
                                 <input type="text" class="form-control" id="title" value="{{$product_list->title}}" placeholder="Title">
-                            </div>
+                            </div><br>
         
                             <div class="form-group">
                                 <label for="category_id">Category</label>
@@ -44,29 +44,60 @@
                                 @endforeach
                             
                                 </select>
-                            </div>
+                            </div><br>
+                            <div class="form-group">
+                                <label for="sub_category_id">Sub Category</label>
+                                <select class="form-control" id="sub_category_id" name="sub_category_id">
+                                <option value="{{$product_list->sub_category}}">{{get_sub_category_name($product_list->sub_category)}}</option>
+                            
+                                </select>
+                            </div><br>
+
+                            <div class="form-group">
+                                <label for="size">Size</label> <br>
+                            
+                                @foreach ($size as $item)
+                                    @php
+                                        // Check if the size ID exists in the $size_arr array
+                                        if (!empty($size_arr)) {
+                                            $checked = in_array($item->id, $size_arr) ? 'checked' : '';
+                                        } else {
+                                            $checked ='';
+                                        }
+                                        
+                                        
+                                    @endphp
+                            
+                                    <input type="checkbox" id="size" name="size[]" {{ $checked }} value="{{ $item->id }}">
+                                    <label for="size">{{ $item->size }}</label>
+                                @endforeach
+                            </div><br>
+                            
+                            
+                            
+                            
 
                             <div class="form-group">
                                 <label for="price">Price</label>
                                 <input type="number" class="form-control" id="price" value="{{$product_list->price}}" placeholder="price">
-                            </div>
+                            </div><br>
                             <div class="form-group">
                                 <label for="discount">Discount</label>
                                 <input type="number" class="form-control" id="discount" value="{{$product_list->discount}}" placeholder="discount">
-                            </div>
+                            </div><br>
                             <div class="form-group">
                                 <label for="quantity">Quantity</label>
                                 <input type="number" class="form-control" id="quantity" value="{{$product_list->quantity}}" placeholder="quantity">
-                            </div>
+                            </div><br>
                             
+                            
+                           
+                        </div>
+                        <div class="col-md-6">
                             <div class="form-group">
                                 <label for="description">Description</label>
                                 <textarea class="form-control" id="description" rows="10">{{$product_list->description}}</textarea>
                             </div>
-                           
-                        </div>
-                        <div class="col-md-6">
-                            
                             
                             <div class="mb-3">
                                 <label>Thumbnail Image:</label>
@@ -132,6 +163,30 @@
     
     CKEDITOR.replace('description');
     $(document).ready(function(){
+
+        $('#category_id').on('change', function() {
+            let categoryId = $(this).val(); 
+          
+
+            if(categoryId) {
+                $.ajax({
+                    url: '/get-subcategories/' + categoryId, 
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        $('#sub_category_id').empty();
+                        $('#sub_category_id').append('<option value="">--Select Subcategory--</option>');
+                        
+                        $.each(data, function(key, subcategory) {
+                            $('#sub_category_id').append('<option value="'+ subcategory.id +'">'+ subcategory.name +'</option>');
+                        });
+                    }
+                });
+            } else {
+                $('#sub_category_id').empty();
+                $('#sub_category_id').append('<option value="">--Select Subcategory--</option>');
+            }
+        });
         
         $('#product_update_btn').on('click', function(){
             
@@ -140,6 +195,7 @@
             var product_code = $('#product_code').val();
             var title = $('#title').val();
             var category_id = $('#category_id').val();
+            var sub_category_id = $('#sub_category_id').val();
             var description = CKEDITOR.instances['description'].getData()
             var price = $('#price').val();
             var discount = $('#discount').val();
@@ -182,6 +238,12 @@
             formData.append('product_code', product_code);
             formData.append('title', title);
             formData.append('category_id', category_id);
+            formData.append('sub_category_id', sub_category_id);
+            var selectedSizes = [];
+            $('input[name="size[]"]:checked').each(function() {
+                selectedSizes.push($(this).val());
+            });
+            formData.append('size', JSON.stringify(selectedSizes)); 
             formData.append('description', description);
             formData.append('price', price);
             formData.append('discount', discount);

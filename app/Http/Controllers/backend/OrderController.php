@@ -16,11 +16,226 @@ class OrderController extends Controller
         ->groupBy('order_code')
         ->orderBy('id', 'DESC')
         ->paginate(10);
+        
 
         // dd($data['order_list']);
         
         return view('admin.order.list')->with($data);
     }
+
+    public function create(){
+        
+        $data['delivery_charge']=DB::table('delivery_charge')->where('status', 1)->get();
+        return view('admin.order.create')->with($data);
+    }
+
+    public function searchProduct(Request $request)
+    {
+        $searchTerm = $request->input('query');
+
+        // Search for products by title
+        $products = DB::table('products')->where('title', 'LIKE', '%' . $searchTerm . '%')
+            ->select('id', 'title', 'price','discount', 'thumbnail') // Select relevant fields
+            ->get();
+
+        return response()->json($products);
+    }
+
+    public function store(Request $request)
+    {
+        
+        // dd($request->all());
+        // Retrieve and parse the input data
+        $product_ids = $request->input('product_ids');
+        foreach ($product_ids as $key => $value) {
+            $new_product_ids = explode(',', $value);
+        }
+
+        $quantities = $request->input('quantities');
+        foreach ($quantities as $key => $value) {
+            $new_quantities = explode(',', $value);
+        }
+
+        $subtotals = $request->input('subtotals');
+        foreach ($subtotals as $key => $value) {
+            $new_subtotals = explode(',', $value);
+        }
+        $total= array_sum($new_subtotals);
+       
+        $delivery_charge = (int)$request->input('delivery_charge_hidden');
+        $discount = (int)$request->input('discount_hidden');
+        $total_sum=($total+$delivery_charge)-$discount;
+        // dd($delivery_charge);
+        // Retrieve the last order_code
+        $lastOrder = DB::table('customer_order')
+            ->orderBy('id', 'desc')
+            ->whereNotNull('order_code')
+            ->first();
+
+        $newOrderNumber = 1;
+
+        if ($lastOrder) {
+            $lastOrderCode = $lastOrder->order_code;
+            $lastOrderNumber = (int)str_replace('GM-', '', $lastOrderCode);
+            $newOrderNumber = $lastOrderNumber + 1;
+        }
+
+        // Format the new order code 
+        $newOrderCode = 'GM-' . str_pad($newOrderNumber, 2, '0', STR_PAD_LEFT);
+
+        $isInserted = false;
+
+        // Loop through each product and insert the order
+        foreach ($new_product_ids as $index => $product_id) {
+            $quantity = $new_quantities[$index];
+            $subtotal = $new_subtotals[$index];
+
+            // Create a new order in the database
+            $id = DB::table('customer_order')->insertGetId([
+                'customer_id' => null, 
+                'product_id' => $product_id,
+                'products_qty' => $quantity,
+                'total_price' => $total_sum,
+                'full_name' => $request->input('full_name'),
+                'delivery_address' => $request->input('delivery_address'),
+                'phone_number' => $request->input('phone_number'),
+                'order_code' => $newOrderCode,
+                'delivery_charge' => $delivery_charge,
+                'discount' => $discount,
+            ]);
+
+            if ($id) {
+                $isInserted = true;
+            }
+        }
+
+        if ($isInserted) {
+            return redirect()->route('admin.order.list')->with('success', 'Order placed successfully.');
+        } else {
+            return redirect()->back()->with('error', 'Failed to place the order.');
+        }
+    }
+
+    
+
+    public function edit($order_code)
+    {
+        $single_order=DB::table('customer_order')->where('order_code', $order_code)->first();
+        
+        $order_invoice=DB::table('products')
+        ->join('customer_order', 'customer_order.product_id', 'products.id')
+        ->where('customer_order.order_code', $single_order->order_code)
+        ->select('products.title as title','customer_order.products_qty as products_qty' ,'customer_order.product_id as product_id' ,'products.thumbnail as thumbnail', 'products.price as offer_cost', 'products.discount as discount', 'customer_order.delivery_charge as delivery_charge')
+        ->get();
+        
+        $data['single_order']=$single_order;
+        $data['order_invoice']=$order_invoice;
+        $data['delivery_charge']=DB::table('delivery_charge')->where('status', 1)->get();
+        // dd($data);   
+        
+        return view('admin.order.edit')->with($data);
+    }
+
+   
+
+    public function update_by(Request $request, $order_code)
+    {
+        // Retrieve and parse the input data
+        $existingOrder = DB::table('customer_order')->where('order_code', $order_code)->get();
+        foreach ($existingOrder as  $value) {
+            DB::table('customer_order')->where('order_code', $order_code)->delete();
+        }
+        
+        $product_ids = $request->input('product_ids');
+        // dd($product_ids);
+        foreach ($product_ids as $key => $value) {
+            $new_product_ids = explode(',', $value);
+        }
+
+        $quantities = $request->input('quantities');
+        foreach ($quantities as $key => $value) {
+            $new_quantities = explode(',', $value);
+        }
+
+        $subtotals = $request->input('subtotals');
+        foreach ($subtotals as $key => $value) {
+            $new_subtotals = explode(',', $value);
+        }
+        $total= array_sum($new_subtotals);
+
+        $delivery_charge = (int)$request->input('delivery_charge_hidden');
+        $discount = (int)$request->input('discount_hidden');
+        $total_sum=($total+$delivery_charge)-$discount;
+
+        
+        // dd($delivery_charge);
+        // Retrieve the last order_code
+        $lastOrder = DB::table('customer_order')
+            ->orderBy('id', 'desc')
+            ->whereNotNull('order_code')
+            ->first();
+
+        $newOrderNumber = 1;
+
+        if ($lastOrder) {
+            $lastOrderCode = $lastOrder->order_code;
+            $lastOrderNumber = (int)str_replace('GM-', '', $lastOrderCode);
+            $newOrderNumber = $lastOrderNumber + 1;
+        }
+
+        // Format the new order code 
+        $newOrderCode = 'GM-' . str_pad($newOrderNumber, 2, '0', STR_PAD_LEFT);
+
+        $isInserted = false;
+
+        // Loop through each product and insert the order
+        foreach ($new_product_ids as $index => $product_id) {
+            // dd($product_id);
+            $quantity = $new_quantities[$index];
+            $subtotal = $new_subtotals[$index];
+
+            // Create a new order in the database
+            $id = DB::table('customer_order')->insertGetId([
+                'customer_id' => null, 
+                'product_id' => $product_id,
+                'products_qty' => $quantity,
+                'total_price' => $total_sum,
+                'full_name' => $request->input('full_name'),
+                'delivery_address' => $request->input('delivery_address'),
+                'phone_number' => $request->input('phone_number'),
+                'order_code' => $order_code,
+                'delivery_charge' => $delivery_charge,
+                'discount' => $discount,
+            ]);
+            
+
+            if ($id) {
+                $isInserted = true;
+            }
+        }
+
+        if ($isInserted) {
+            return redirect()->route('admin.order.list')->with('success', 'Order Update successfully.');
+        } else {
+            return redirect()->back()->with('error', 'Failed to update the order.');
+        }
+    }
+
+
+
+
+    protected function generateOrderCode()
+    {
+        $lastOrder = DB::table('customer_order')->orderBy('id', 'desc')->first();
+        if ($lastOrder) {
+            $lastCode = $lastOrder->order_code;
+            $newCodeNumber = (int) filter_var($lastCode, FILTER_SANITIZE_NUMBER_INT) + 1;
+            return 'GM-' . sprintf('%02d', $newCodeNumber);
+        }
+
+        return 'GM-01';
+    }
+
 
     public function orderSearchList(Request $request)
     {
@@ -126,6 +341,25 @@ class OrderController extends Controller
             'status' =>true
         ]);
 
+    }
+
+     //invoice
+     public function invoice($id){
+        $data['category'] = DB::table('category')->where('status', 1)->get();
+        $single_order=DB::table('customer_order')->where('id', $id)->first();
+        // dd($single_order);
+        $order_invoice=DB::table('products')
+        ->join('customer_order', 'customer_order.product_id', 'products.id')
+        ->where('customer_order.order_code', $single_order->order_code)
+        ->select('products.title as title','customer_order.products_qty' ,'customer_order.additional_information as delivery_charge', 'products.price as offer_cost', 'products.discount as discount')
+        ->get();
+        // dd($order_invoice);
+        
+        $data['single_order']=$single_order;
+        $data['order_invoice']=$order_invoice;
+        $data['sub_title']='invoice';
+        
+        return view('frontend.pages.invoice_new')->with($data);
     }
 
     //place order at stead fast

@@ -68,6 +68,17 @@ class FrontendController extends Controller
     }
 
     public function home(){
+        $data['categories'] = DB::table('category')->where('status', 1)->get();
+        $data['subcategories'] = DB::table('subcategory')->where('status', 1)->get();
+        $data['sliders'] = DB::table('sliders')->where('status', 1)->latest()->get();
+        $data['sub_title'] = 'home';
+    
+        return view('frontend.index')->with($data);
+    }
+    
+    
+
+    public function home_old(){
         $data['category'] = DB::table('category')->where('status', 1)->get();
         $data['sliders'] = DB::table('sliders')->where('status', 1)->latest()->get();
         $data['sub_title']='home';

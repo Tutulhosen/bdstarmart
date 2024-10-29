@@ -14,6 +14,8 @@ use App\Http\Controllers\Frontend\FrontendController;
 use App\Http\Controllers\backend\MemberShipController;
 use App\Http\Controllers\backend\SocialLinkController;
 use App\Http\Controllers\backend\AdminDashboardController;
+use App\Http\Controllers\backend\DeliveryChargeController;
+use App\Http\Controllers\backend\SizeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -69,6 +71,17 @@ Route::middleware('admin')->group(function (){
         
     });
 
+    // Size route 
+    Route::name('admin.size.')->prefix('admin/size')->group(function () {
+        Route::get('/list',[SizeController::class, 'List'])->name('list');
+        Route::get('/page',[SizeController::class, 'create'])->name('create');
+        Route::post('/store',[SizeController::class, 'store'])->name('store');
+        Route::get('/update/{id}',[SizeController::class, 'update_page'])->name('update.page');
+        Route::post('/update',[SizeController::class, 'update'])->name('update');
+        Route::get('/delete/{id}',[SizeController::class, 'delete'])->name('delete');
+        Route::get('/status/update/{id}',[SizeController::class, 'status'])->name('status.update');
+    });
+
     // product route 
     Route::name('admin.product.')->prefix('admin/product')->group(function () {
         Route::get('/list',[ProductController::class, 'productList'])->name('list');
@@ -108,12 +121,16 @@ Route::middleware('admin')->group(function (){
     Route::name('admin.order.')->prefix('admin/order')->group(function () {
         Route::get('/list',[OrderController::class, 'orderList'])->name('list');
         Route::get('/search',[OrderController::class, 'orderSearchList'])->name('search');
-        Route::get('/page',[OrderController::class, 'uesrPage'])->name('page');
-        Route::post('/store',[OrderController::class, 'userStore'])->name('store');
+        Route::get('/create',[OrderController::class, 'create'])->name('create');
+        Route::get('/edit/{order_code}', [OrderController::class, 'edit'])->name('edit');
+        Route::post('/update/by/{order_code}', [OrderController::class, 'update_by'])->name('update.by');
+        Route::get('/product/search',[OrderController::class, 'searchProduct'])->name('product.search');
+        Route::post('/store',[OrderController::class, 'store'])->name('store');
         Route::get('/update/{id}',[OrderController::class, 'userupdatePage'])->name('update.page');
-        Route::post('/update',[OrderController::class, 'userUpdate'])->name('update');
+        Route::post('/update',[OrderController::class, 'OrderUpdate'])->name('update');
         Route::get('/delete/{id}',[OrderController::class, 'userDelete'])->name('delete');
         Route::get('/status/update',[OrderController::class, 'orderStatusUpdate'])->name('status.update');
+        Route::get('/invoice/{id}', [OrderController::class, 'invoice'])->name('invoice');
     });
 
     // top header route
@@ -148,6 +165,17 @@ Route::middleware('admin')->group(function (){
         Route::get('/status/update/{id}',[SocialLinkController::class, 'status'])->name('status.update');
     });
 
+    // Delivery charge route
+    Route::name('admin.delivery.charge.')->prefix('admin/delivery/charge')->group(function () {
+        Route::get('/list',[DeliveryChargeController::class, 'List'])->name('list');
+        Route::get('/page',[DeliveryChargeController::class, 'create'])->name('create');
+        Route::post('/store',[DeliveryChargeController::class, 'store'])->name('store');
+        Route::get('/update/{id}',[DeliveryChargeController::class, 'update_page'])->name('update.page');
+        Route::post('/update',[DeliveryChargeController::class, 'update'])->name('update');
+        Route::get('/delete/{id}',[DeliveryChargeController::class, 'delete'])->name('delete');
+        Route::get('/status/update/{id}',[DeliveryChargeController::class, 'status'])->name('status.update');
+    });
+
     // facebook meta pixel
     Route::name('admin.meta-pixel.')->prefix('admin/meta-pixel')->group(function () {
         Route::get('/list',[PixelController::class, 'List'])->name('list');
@@ -180,6 +208,9 @@ Route::middleware('admin')->group(function (){
     Route::post('/place-order', [OrderController::class, 'placeOrder'])->name('placeOrder');
     Route::post('/order/status', [OrderController::class, 'OrderStatus'])->name('order.status');
 });
+
+Route::get('/get-subcategories/{categoryId}', [ProductController::class, 'getSubcategories']);
+
 
 
 

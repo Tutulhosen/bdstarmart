@@ -6,6 +6,7 @@
     <div class="row">
         <div class="col-1"></div>
         <div class="col-10">
+            <a class="btn btn-primary" href="{{route('admin.slider.page')}}">Add New</a>
             <div class="card">
                 <h3 class="card-header text-center bg-success text-white">Slider List</h3>
                 <div class="table-responsive text-nowrap">

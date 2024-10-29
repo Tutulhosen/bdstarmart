@@ -10,26 +10,18 @@
                     <div class="card">
                         <div class="card-body">
                             <div class="headline">
-                                <h3 class="text-center">Create A New Sub-Category</h3>
+                                <h3 class="text-center">Update</h3>
                             </div>
                             <br>
                             <form class="forms-sample" id="myform">
+                                @csrf
                                 <div class="form-group">
-                                    <label for="name">Sub Category Name</label>
-                                    <input type="text" class="form-control" name="sub_category" id="sub_category" placeholder="Sub Category name">
+                                    <label for="name">Size</label>
+                                    <input type="text" class="form-control" id="size" value="{{$size_info->size}}" placeholder="Size">
                                 </div>
+                                
                                 <br>
-                                <div class="form-group">
-                                    <label for="name">Category </label>
-                                    <select name="category" id="category" class="form-control">
-                                        <option value="">--select category--</option>
-                                        @foreach ($category_list as $item)
-                                            <option value="{{$item->id}}">{{$item->name}}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <br>
-                                <button type="button" class="btn btn-success mr-2" id="cat_subnit_btn">Submit</button>
+                                <button type="button" class="btn btn-success mr-2" id="update_btn" value="{{$size_info->id}}">Submit</button>
                                 <button class="btn btn-dark">Cancel</button>
                             </form>
                         </div>
@@ -50,39 +42,43 @@
 
     $(document).ready(function(){
         
-        $('#cat_subnit_btn').on('click', function(){
-        let name = $('#sub_category').val();
-        let category = $('#category').val();
+        $('#update_btn').on('click', function(){
+        let size = $('#size').val();
+        let id = $(this).val();
+       
 
-        if (name == '') {
-            showToast('Enter A Sub Category Name', 'error');
-            return; 
-        }
-        if (category == '') {
-            showToast('Select A Category', 'error');
+        if (size == '') {
+            showToast('Enter A Eize', 'error');
             return; 
         }
 
+        
 
         let formData = new FormData();
-        formData.append('name', name);
-        formData.append('category', category);
+        formData.append('size', size);
+        
+        formData.append('id', id);
         formData.append('_token', '{{ csrf_token() }}'); 
 
         $.ajax({
-            url: '{{ route('admin.sub.cat.store') }}', 
+            url: '{{ route('admin.size.update') }}', 
             method: 'POST',
             data: formData,
             contentType: false, 
-            processData: false,
+            processData: false, 
             success: function(response) {
                 if (response.status==true) {
                     
                     showToast(response.success, 'success');
                     setTimeout(function() {
                         // Redirect to the list page
-                        window.location.href = '/admin/sub/cat/list';  
+                        window.location.href = '/admin/size/list';  
                     }, 1500);
+                    
+                }
+                if (response.status==false) {
+                    
+                    showToast(response.error, 'success');
                     
                 }
                 

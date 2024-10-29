@@ -10,10 +10,10 @@ class LoginController extends Controller
 {
     //show login page
     public function loginPage(){
-        return view('backend.login');
+        return view('admin.login');
     }
 
-    //admin user login process
+    //admin user login process  
     public function loged_in(Request $request){
         if (Auth::attempt([
             'email' => $request->email,

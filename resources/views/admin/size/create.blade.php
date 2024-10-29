@@ -6,23 +6,22 @@
         <div class="row">
             <div class="col-3"></div>
             <div class="col-6">
-                
                 <div class="card mt-5">
                     <div class="card">
                         <div class="card-body">
                             <div class="headline">
-                                <h3 class="text-center">Add A Slider Image</h3>
+                                <h3 class="text-center">Create  New </h3>
                             </div>
-                        
-                            <form>
-                                <div class="mb-3">
-                                  <label for="imageUpload" class="form-label">Upload Image</label>
-                                  <input type="file" class="form-control" name="img[]" id="imageUpload" accept="image/*">
+                            <br>
+                            <form class="forms-sample" id="myform">
+                                <div class="form-group">
+                                    <label for="size">Size </label>
+                                    <input type="text" class="form-control" id="size" placeholder="Size">
                                 </div>
-                                <div class="mb-3">
-                                  <img id="imagePreview" class="image-preview" src="https://via.placeholder.com/300" alt="Image Preview">
-                                </div>
-                                <button type="button" class="btn btn-primary mr-2" id="slider_subnit_btn">Submit</button>
+                                <br>
+                                
+                                
+                                <button type="button" class="btn btn-success mr-2" id="subnit_btn">Submit</button>
                                 <button class="btn btn-dark">Cancel</button>
                             </form>
                         </div>
@@ -36,29 +35,30 @@
     </div>
 @endsection
 @section('scripts')
+    
 
 <script>
     
 
     $(document).ready(function(){
         
-        $('#slider_subnit_btn').on('click', function(){
-
-            var image = $('#imageUpload')[0].files[0];
-
-
-            // alert(image);
-            if (!image) {
-                showToast('Select A Slider Image', 'error');
+        $('#subnit_btn').on('click', function(){
+            let size = $('#size').val();
+           
+                // alert(name);
+            if (size == '') {
+                showToast('Enter A Size', 'error');
                 return; 
             }
 
+
             let formData = new FormData();
-            formData.append('image', image);
+            formData.append('size', size);
+           
             formData.append('_token', '{{ csrf_token() }}'); 
 
             $.ajax({
-                url: '{{ route('admin.slider.store') }}', 
+                url: '{{ route('admin.size.store') }}', 
                 method: 'POST',
                 data: formData,
                 contentType: false, 
@@ -67,20 +67,17 @@
                     if (response.status==true) {
                         
                         showToast(response.success, 'success');
-
                         setTimeout(function() {
                             // Redirect to the list page
-                            window.location.href = '/admin/slider/list';  
+                            window.location.href = '/admin/size/list';  
                         }, 1500);
+                        
                     }
                     
                 },
                 
             });
         });
-
-
-
 
 
     });

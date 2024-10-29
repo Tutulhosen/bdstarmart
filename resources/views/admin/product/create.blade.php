@@ -18,11 +18,11 @@
                                 <div class="form-group">
                                     <label for="product_code">Product Code</label>
                                     <input type="text" class="form-control" id="product_code" placeholder="Product code">
-                                </div>
+                                </div><br>
                                 <div class="form-group">
                                     <label for="title">Title</label>
                                     <input type="text" class="form-control" id="title" placeholder="Title">
-                                </div>
+                                </div><br>
             
                                 <div class="form-group">
                                     <label for="category_id">Category</label>
@@ -33,30 +33,47 @@
                                     @endforeach
                                 
                                     </select>
-                                </div>
+                                </div><br>
+                                <div class="form-group">
+                                    <label for="sub_category_id">Sub Category</label>
+                                    <select class="form-control" id="sub_category_id" name="sub_category_id">
+                                    
+                                
+                                    </select>
+                                </div><br>
+
+                                <div class="form-group">
+                                    <label for="size">Size</label> <br>
+                                    @foreach ($size as $item)
+                                    <input type="checkbox" id="size" name="size[]" value="{{$item->id}}">
+                                    <label for="size"> {{$item->size}}</label>
+                                    @endforeach
+
+                                  
+                                </div><br>
 
                                 <div class="form-group">
                                     <label for="price">Price</label>
                                     <input type="number" class="form-control" id="price" placeholder="price">
-                                </div>
+                                </div><br>
                                 <div class="form-group">
                                     <label for="discount">Discount</label>
                                     <input type="number" class="form-control" id="discount" placeholder="discount">
-                                </div>
+                                </div><br>
                                 <div class="form-group">
                                     <label for="quantity">Quantity</label>
                                     <input type="number" class="form-control" id="quantity" placeholder="quantity">
-                                </div>
+                                </div><br>
+                                
+                                
+                               
+                            </div>
+                            <div class="col-md-6">
                                 
                                 <div class="form-group">
                                     <label for="description">Description</label>
                                     <textarea class="form-control" id="description" rows="10"></textarea>
                                 </div>
-                               
-                            </div>
-                            <div class="col-md-6">
-                                
-                                
                                 <div class="mb-3">
                                     <label>Thumbnail Image:</label>
                                     <label for="imageUpload" class="form-label">Upload Image</label>
@@ -112,6 +129,30 @@
     CKEDITOR.replace('description');
 
     $(document).ready(function(){
+
+        $('#category_id').on('change', function() {
+            let categoryId = $(this).val(); 
+          
+
+            if(categoryId) {
+                $.ajax({
+                    url: '/get-subcategories/' + categoryId, 
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        $('#sub_category_id').empty();
+                        $('#sub_category_id').append('<option value="">--Select Subcategory--</option>');
+                        
+                        $.each(data, function(key, subcategory) {
+                            $('#sub_category_id').append('<option value="'+ subcategory.id +'">'+ subcategory.name +'</option>');
+                        });
+                    }
+                });
+            } else {
+                $('#sub_category_id').empty();
+                $('#sub_category_id').append('<option value="">--Select Subcategory--</option>');
+            }
+        });
         
         $('#product_submit_btn').on('click', function(){
            
@@ -120,12 +161,13 @@
             var product_code = $('#product_code').val();
             var title = $('#title').val();
             var category_id = $('#category_id').val();
+            var sub_category_id = $('#sub_category_id').val();
             var description = CKEDITOR.instances['description'].getData()
             var price = $('#price').val();
             var discount = $('#discount').val();
             var quantity = $('#quantity').val();
-            var thumbnailImage = $('#imageUpload')[0].files[0]; // Assuming you're uploading a single thumbnail image
-            var galleryImages = $('#multipleImageUpload')[0].files; // Assuming you're uploading multiple gallery images
+            var thumbnailImage = $('#imageUpload')[0].files[0]; 
+            var galleryImages = $('#multipleImageUpload')[0].files; 
           
            
             if (product_code == '') {
@@ -164,6 +206,12 @@
             formData.append('product_code', product_code);
             formData.append('title', title);
             formData.append('category_id', category_id);
+            formData.append('sub_category_id', sub_category_id);
+            var selectedSizes = [];
+            $('input[name="size[]"]:checked').each(function() {
+                selectedSizes.push($(this).val());
+            });
+            formData.append('size', JSON.stringify(selectedSizes)); 
             formData.append('description', description);
             formData.append('price', price);
             formData.append('discount', discount);
