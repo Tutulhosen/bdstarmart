@@ -24,6 +24,14 @@ if (!function_exists('get_sub_category_name')) {
     }
 }
 
+if (!function_exists('size_name')) {
+    function size_name($id)
+    {
+        $size_name=DB::table('size')->where('id', $id)->select('size')->first();
+        return $size_name->size;
+    }
+}
+
 if (!function_exists('order_status')) {
     function order_status($order_status)
     {

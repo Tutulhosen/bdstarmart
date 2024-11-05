@@ -40,11 +40,16 @@
     </div> --}}
     <div class="row align-items-center py-3 px-xl-5">
         <div class="logo">
-            @if ($logo->image)
-            <a href="{{route('home')}}"><img src="{{asset('images/logo/' . $logo->image)}}" alt="" width="325 px" height="122 px"></a>
+            @if (!empty($logo))
+                @if ($logo->image)
+                <a href="{{route('home')}}"><img src="{{asset('images/logo/' . $logo->image)}}" alt="" width="325 px" height="122 px"></a>
+                @else
+                <a href="{{route('home')}}"><img src="{{asset('frontend/uploads/6649146b6febe.png')}}" alt=""></a>
+                @endif
             @else
-            <a href="{{route('home')}}"><img src="{{asset('frontend/uploads/6649146b6febe.png')}}" alt=""></a>
+                <a href="{{route('home')}}"><img src="{{asset('frontend/uploads/6649146b6febe.png')}}" alt=""></a>
             @endif
+            
             
         </div>
         <div class="col-lg-6 col-6 text-left">
@@ -60,14 +65,17 @@
             </form>
         </div>
         <div class="col-lg-3 col-6 text-right">
-            <a href="" class="btn border">
-                <i class="fas fa-heart text-primary"></i>
-                <span class="badge">0</span>
-            </a>
-            <a href="" class="btn border">
+            <a href="{{route('shop.checkout')}}" class="btn border" id="add_to_cart">
                 <i class="fas fa-shopping-cart text-primary"></i>
-                <span class="badge">0</span>
+                <span class="badge" id="cart_count">0</span> 
             </a>
         </div>
+        
     </div>
 </div>
+
+@section('scripts')
+    <script>
+
+    </script>
+@endsection

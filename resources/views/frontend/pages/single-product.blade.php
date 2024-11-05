@@ -1,168 +1,233 @@
 @extends('frontend.layout.app')
 
 @section('main-content')
-<section>
-    <div class="category_breadcrumb">
-        <div class="container">
-            <div class="row">
-                <div class="col-12">
-                    <p>
-                        <a href="{{ url('/') }}">Home</a>
-                        /
-                        <a href="javascript:void(0);">Home &amp; Gadgets</a>
-                    </p>
+    @include('frontend.pages.navbar_without_slider')
+
+    <!-- Shop Detail Start -->
+    <div class="container-fluid py-5">
+        <div class="row px-xl-5">
+            <!-- Product Images Carousel -->
+            <div class="col-lg-5 pb-5">
+                <div id="product-carousel" class="carousel slide" data-ride="carousel">
+                    <div class="carousel-inner border">
+                        @foreach($single_product_data['gallery'] as $index => $image)
+                            <div class="carousel-item {{ $loop->first ? 'active' : '' }}">
+                                <img class="w-100" style="height: 450px" src="{{ asset('images/galleries/' . $image) }}" alt="{{ $single_product_data['title'] }}">
+                            </div>
+                        @endforeach
+                    </div>
+                    <a class="carousel-control-prev" href="#product-carousel" data-slide="prev">
+                        <i class="fa fa-2x fa-angle-left text-dark"></i>
+                    </a>
+                    <a class="carousel-control-next" href="#product-carousel" data-slide="next">
+                        <i class="fa fa-2x fa-angle-right text-dark"></i>
+                    </a>
                 </div>
             </div>
-        </div>
-    </div>
-</section>
-<section>
-    <div class="products-details-section">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-4 col-12 mb-md-3 mb-2">
-                    <div id="sing_prod_img_slider" class="carousel slide" data-ride="carousel">
-                        <div class="carousel-inner">
-                            @foreach($single_product_data['gallery'] as $index => $image)
-                                <div class="carousel-item {{ $index === 0 ? 'active' : '' }}">
-                                    <img src="{{ asset('images/galleries/' . $image) }}" class="d-block w-100" alt="">
+
+            <!-- Product Details -->
+            <div class="col-lg-7 pb-5">
+                <h3 class="font-weight-semi-bold">{{ $single_product_data['title'] }}</h3>
+                
+                <h5 class=" mb-4"> Price:  {{ $single_product_data['price'] }} TK</h5>
+                <h5 class=" mb-4" style="color: rebeccapurple"> Discount:  {{ $single_product_data['discount'] ?? 0 }} TK</h5>
+                <h5 class=" mb-4 total_value"> Total:  {{ $single_product_data['discount_price'] }} TK</h5>
+                <input type="hidden" id="total_value_hidden" value="{{ $single_product_data['discount_price'] }}">
+
+                @if (!empty($single_product_data['size']))
+                    <div class="d-flex mb-3">
+                        <p class="text-dark font-weight-medium mb-0 mr-3">Sizes:</p>
+                        <form>
+                            @foreach (json_decode($single_product_data['size']) as $index => $size)
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input type="radio" class="custom-control-input" id="size-{{ $index }}" name="size" value="{{ $size }}">
+                                    <label class="custom-control-label" for="size-{{ $index }}">{{ size_name($size) }}</label>
                                 </div>
                             @endforeach
+                        </form>
+                    </div>
+                @endif
+                
+                <!-- Quantity input -->
+                <div class="d-flex align-items-center mb-4 pt-2">
+                    <div class="input-group quantity mr-3" style="width: 130px;">
+                        <div class="input-group-btn">
+                            <button class="btn btn-primary btn-minus"><i class="fa fa-minus"></i></button>
+                        </div>
+                        <input type="text" class="form-control bg-secondary text-center" id="qty"  value="1">
+                        <div class="input-group-btn">
+                            <button class="btn btn-primary btn-plus"><i class="fa fa-plus"></i></button>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-md-5 mb-3">
-                    <h2 class="text-capitalize single_prod_title">{{ $single_product_data['title'] }}</h2>
-                    <h3 class="font-weight-bold single_prod_prices">
-                        @if($single_product_data['discount'])
-                            <span style="text-decoration: line-through; color: #555; opacity: .5">৳ {{ $single_product_data['price'] }}</span>
-                            <span style="color: #0088cc" id="product_price">{{ $single_product_data['discount_price'] }}</span>
-                        @else
-                            <span style="color: #0088cc" id="product_price">৳ {{ $single_product_data['price'] }}</span>
-                        @endif
-                    </h3>
-                    <p class="sku_text"><span>প্রোডাক্ট কোড: </span> <span class="p-0 pr-1">{{ $single_product_data['product_code'] }}</span></p>
-                    {{-- <h4 class="single_prod_in_stock">স্টক : <span class="text-danger">স্টক আউট</span></h4> --}}
-
-                    <form action="{{route('shop.checkout')}}" method="post">
-                        @csrf
-                        <input type="hidden" id="product_id" name="product_id" value="{{$single_product_data['id']}}">
-                        <input type="hidden" id="total_amount" name="total_amount" value="{{ $single_product_data['discount'] ? $single_product_data['discount_price'] : $single_product_data['price'] }}">
-                        <input type="hidden" id="product_price_value" value="{{ $single_product_data['discount'] ? $single_product_data['discount_price'] : $single_product_data['price'] }}">
-                        
-                        <div class="d-flex">
-                            <div class="qty-text-div">
-                                <span>পরিমান : </span>
-                            </div>
-                    
-                            <div class="qty_div">
-                                <div class="minus-qty-div">
-                                    <i class="fa fa-minus" id="qty_minus"></i>
-                                </div>
-                                <div class="qty-div">
-                                    <input type="text" name="qty" id="qty" min="1" value="1" readonly>
-                                </div>
-                                <div class="plus-qty-div">
-                                    <i class="fa fa-plus" id="qty_plus"></i>
-                                </div>
-                            </div>
-                        </div><br>
-                    
-                        <div class="total_amount">
-                            <span>মোট  : </span> <span id="total_price">{{ $single_product_data['discount'] ? $single_product_data['discount_price'] : $single_product_data['price'] }}</span> টাকা
-                        </div>
-                        
-                        {{-- <input type="submit" class="btn px-4 order_now_btn order_now_btn_m" name="order_now" value="অর্ডার করুন"> --}}
-                        <div class="mt-md-3 mt-2">
-                            <input type="submit" class="btn px-4 add_cart_btn" name="add_cart" value="কার্ট-এ যোগ করুন">
-                        </div>
-                    </form>
-                    
-
-                    <div class="mt-md-5 mt-4">
-                        <h4>ফোনে অর্ডারের জন্য ডায়াল করুন</h4>
-                        <h4 class="font-weight-bold ml-4">
-                            <a href="tel:01784116079">
-                                <i class="fa fa-phone-square"></i>
-                                {{$company_info->company_phone}}
-                            </a>
-                        </h4>
-                    </div>
-
-                    <div class="col-12 mt-3 delivery_details" style="padding: 0">
-                        <table class="table" style="color:#08c !important">
-                            <tbody>
-                                <tr>
-                                    <td style="padding-left: 0; border-bottom: 1px solid #ddd;">
-                                        হোম ডেলিভারি
-                                    </td>
-                                    <td style="border-bottom: 1px solid #ddd;">
-                                        <b>৳ 90</b>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style="padding-left: 0; border-bottom: 1px solid #ddd;">
-                                        হোম ডেলিভারি
-                                    </td>
-                                    <td style="border-bottom: 1px solid #ddd;">
-                                        <b>৳ 110</b>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <h6 class="font-weight-bold text-danger mt-md-3 mt-2">বিকাশ নাম্বার : {{$company_info->company_phone}}</h6>
+                <!-- Add to Cart and Order Now buttons -->
+                <div class="d-flex align-items-center mb-4 pt-2">
+                    <button class="btn btn-primary px-3 add-to-cart-btn" id="add_cart_btn" data-id="{{ $single_product_data['id'] }}">
+                        <i class="fa fa-shopping-cart mr-1"></i> Add To Cart
+                    </button> &nbsp;
+                    <button class="btn btn-order px-3 order-now-btn" id="order_now_btn" data-id="{{ $single_product_data['id'] }}">
+                        <i class="fa fa-receipt mr-1"></i> Order Now
+                    </button>
                 </div>
 
-                <div class="col-md-3 mb-3">
-                    <div class="features">
-                        <table>
-                            <tbody>
-                                <tr>
-                                    <td class="icon"><i class="fa fa-thumbs-up" style="color: #666"></i></td>
-                                    <td class="text">100% original products</td>
-                                </tr>
-                                <tr>
-                                    <td class="icon"><i class="fa fa-money" style="color: #666"></i></td>
-                                    <td class="text">Pay cash on delivery</td>
-                                </tr>
-                                <tr>
-                                    <td class="icon"><i class="fa fa-shopping-cart" style="color: #666; vertical-align: top"></i></td>
-                                    <td class="text">Delivery within: 2-3 business days</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="mt-md-5 custom-phone">
+                    <h4>ফোনে অর্ডারের জন্য ডায়াল করুন</h4>
+                    <h4 class="font-weight-bold ml-4">
+                        <a href="tel:01784116079">
+                            <i class="fa fa-phone-square"></i>
+                            {{ $company_info->company_phone }}
+                        </a>
+                    </h4>
+                </div>
 
-                   
+                <div class="col-12 mt-3 delivery_details" style="padding: 0">
+                    <table class="table" style="color:#08c !important">
+                        <tbody>
+                            @foreach ($delivery_charge as $item)
+                            <tr class="ml-2">
+                                <td style="padding-left: 0; border-bottom: 1px solid #ddd; padding-left:10px;">
+                                    {{ $item->name_bn }}
+                                </td>
+                                <td style="border-bottom: 1px solid #ddd;">
+                                    <b>{{ $item->charge }}</b>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
             </div>
+        </div>
 
-            <div class="row">
-                <div class="col-12">
-                    <ul class="nav nav-tabs nav-tabs-mod">
-                        <li class="nav-item">
-                            <a class="nav-link active" href="#">পন্যের বিবরণ</a>
-                        </li>
-                    </ul>
-                    <div class="tab-content tab-content-mod">
-                        <div class="tab-pane active">
-                            <div>
-                                {!! $single_product_data['description'] !!}
-                            </div>
+        <!-- Product Description -->
+        <div class="row px-xl-5">
+            <div class="col">
+                <div class="nav nav-tabs justify-content-center border-secondary mb-4">
+                    <a class="nav-item nav-link active" data-toggle="tab" href="#tab-pane-1">Description</a>
+                </div>
+                <div class="tab-content tab-content-mod">
+                    <div class="tab-pane active">
+                        <div>
+                            {!! $single_product_data['description'] !!}
                         </div>
                     </div>
                 </div>
             </div>
-
-            @include('frontend.pages.related_product')                        
-        
         </div>
     </div>
-    
-</section>
+    <!-- Shop Detail End -->
 
+    <!-- You May Also Like Section -->
+    <div class="container-fluid py-5">
+        <div class="text-center mb-4">
+            <h2 class="section-title px-5"><span class="px-2">You May Also Like</span></h2>
+        </div>
+        <div class="row px-xl-5">
+            <div class="col">
+                <div class="owl-carousel related-carousel">
+                    @if (!empty($related_product))
+                        @foreach ($related_product as $product)
+                            <div class="card product-item border-0 mb-4">
+                                <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
+                                    <img style="height:250px" class="img-fluid w-100" src="{{asset('images/galleries/'.$product['thumbnail'])}}" alt="{{ $product['title'] }}">
+                                </div>
+                                <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
+                                    <h6 class="text-truncate mb-3">{{ $product['title'] }}</h6>
+                                    <div class="d-flex justify-content-center">
+                                        @if ($product['discount_price'] < $product['price'])
+                                            <h6>{{ $product['discount_price'] }}</h6><h6 class="text-muted ml-2"><del>{{ $product['price'] }}</del></h6>
+                                        @else
+                                            <h6>{{ $product['price'] }}</h6>
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="card-footer d-flex justify-content-between bg-light border">
+                                    <a href="{{ route('frontend.single.product.page', $product['id']) }}" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View Detail</a>
+                                    <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart</a>
+                                </div>
+                            </div>
+                        @endforeach
+                    @else
+                        <h2 style="text-align: center">No product found</h2>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Products End -->
 @endsection
 
+@section('scripts')
+<script>
+    $(document).ready(function() {
+        // Handle quantity changes
+        $('.quantity button').on('click', function() {
+            var button = $(this);
+            var input = button.parent().parent().find('input');
+            var oldValue = input.val();
+            var discountPrice = {{ $single_product_data['discount_price'] }};
+            var newVal = oldValue;
 
+            if (button.hasClass('btn-plus')) {
+                newVal = parseFloat(oldValue) + 1;
+            } else {
+                if (oldValue > 1) {
+                    newVal = parseFloat(oldValue) - 1;
+                }
+            }
+
+            input.val(newVal);
+            var totalValue = discountPrice * newVal;
+            $('.total_value').text('Total: ' + totalValue + ' TK');
+            $('#total_value_hidden').val(totalValue);
+        });
+
+        // Handle Add to Cart action
+        $('#add_cart_btn').click(function(e) {
+            e.preventDefault();
+            var productId = $(this).data('id');
+            var qty = $('#qty').val();
+            var total_value_hidden = $('#total_value_hidden').val();
+            var selectedSize = $('input[name="size"]:checked').val();
+            
+            if (!selectedSize) {
+                var size = null;
+            }else{
+                var size =selectedSize;
+            }
+           
+            $.ajax({
+                url: '{{ route("cart.add") }}',
+                method: 'POST',
+                data: {
+                    product_id: productId,
+                    qty: qty,
+                    size: size,
+                    total_value_hidden: total_value_hidden,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        alert('Product added to cart successfully!');
+
+                       
+                        $('#cart_count').text(response.cart_count);
+
+                       
+                    } else if (response.already_in_cart) {
+                        alert('Product is already in the cart.');
+                    } else {
+                        alert('Failed to add product to cart: ' + response.message);
+                    }
+                },
+                error: function(xhr) {
+                    alert('Failed to add product to cart.');
+                }
+            });
+        });
+
+        
+    });
+</script>
+@endsection

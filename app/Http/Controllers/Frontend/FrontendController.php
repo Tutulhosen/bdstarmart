@@ -71,37 +71,9 @@ class FrontendController extends Controller
         $data['categories'] = DB::table('category')->where('status', 1)->get();
         $data['subcategories'] = DB::table('subcategory')->where('status', 1)->get();
         $data['sliders'] = DB::table('sliders')->where('status', 1)->latest()->get();
-        $data['sub_title'] = 'home';
-    
-        return view('frontend.index')->with($data);
-    }
-    
-    
 
-    public function home_old(){
-        $data['category'] = DB::table('category')->where('status', 1)->get();
-        $data['sliders'] = DB::table('sliders')->where('status', 1)->latest()->get();
-        $data['sub_title']='home';
-        // session()->flush();
-        // Hot deal products
-        $hot_deal_product = DB::table('products')->whereNotNull('discount')->where('status', 1)->latest()->get();
-        $hot_deal_arr = [];
-        foreach ($hot_deal_product as $value) {
-            $hot_deals = [];
-            $hot_deals['id'] = $value->id;
-            $hot_deals['price'] = $value->price;
-            $hot_deals['discount'] = $value->discount;
-            $hot_deals['discount_price'] = $value->discount ? $value->price - $value->discount : $value->price;
-            $hot_deals['percent'] = (int)(($hot_deals['discount'] / $hot_deals['price']) * 100);
-            $hot_deals['thumbnail'] = $value->thumbnail;
-            
-            array_push($hot_deal_arr, $hot_deals);
-        }
-        
-        // Convert hot deal array to collection
-        $data['hot_deal'] = collect($hot_deal_arr);
     
-        $all_products = DB::table('products')->where('status', 1)->latest()->paginate(14); 
+        $all_products = DB::table('products')->where('status', 1)->latest()->paginate(16); 
 
         $product_arr = [];
         foreach ($all_products as $value) {
@@ -121,8 +93,22 @@ class FrontendController extends Controller
         $data['pagination'] = $all_products;
 
         
+        $data['sub_title'] = 'home';
+    
         return view('frontend.index')->with($data);
     }
+    
+    
+    //session data count
+    public function getCartCount()
+    {
+        $cart = session()->get('cart', []);
+        $cartCount = count($cart);
+     
+        return response()->json(['cart_count' => $cartCount]);
+    }
+
+    
     
 
     //category page view
@@ -201,20 +187,22 @@ class FrontendController extends Controller
     
         $gallery_images = DB::table('gallery')->where('product_id', $single_product->id)->get();
         
+        // Convert the JSON size data to an array
         $product = [
             'id' => $single_product->id,
             'product_code' => $single_product->product_code,
             'title' => $single_product->title,
             'price' => $single_product->price,
             'discount' => $single_product->discount,
+            'size' => json_decode($single_product->size, true),  
             'discount_price' => $single_product->discount ? $single_product->price - $single_product->discount : $single_product->price,
             'description' => $single_product->description,
             'thumbnail' => $single_product->thumbnail,
             'gallery' => $gallery_images->pluck('image_name')->toArray(),
         ];
-        // dd($product);
+    
         $related_products = DB::table('products')->where('id','!=', $single_product->id)->where('category_id', $single_product->category_id)->where('status', 1)->latest()->paginate(14); 
-
+    
         $related_products_arr = [];
         foreach ($related_products as $value) {
             $productt = [];
@@ -224,23 +212,26 @@ class FrontendController extends Controller
             $productt['discount'] = $value->discount;
             $productt['discount_price'] = $value->discount ? $value->price - $value->discount : $value->price;
             $productt['thumbnail'] = $value->thumbnail;
-
+    
             array_push($related_products_arr, $productt);
         }
-        // dd($related_products_arr);
-        $company_info=DB::table('users')->where('role_id', 1)->first();
+    
+        $company_info = DB::table('users')->where('role_id', 1)->first();
+        $delivery_charge = DB::table('delivery_charge')->where('status', 1)->get();
+        
         $data = [
             'single_product_data' => $product,
-            'related_product' =>$related_products_arr,
-            'category' => DB::table('category')->where('status', 1)->get(),
-            'sub_title'=>'Single Product',
-            'company_info'=>$company_info,
+            'related_product' => $related_products_arr,
+            'categories' => DB::table('category')->where('status', 1)->get(),
+            'subcategories' => DB::table('subcategory')->where('status', 1)->get(),
+            'sub_title' => 'Single Product',
+            'company_info' => $company_info,
+            'delivery_charge' => $delivery_charge,
         ];
         // dd($data);
-
-    
         return view('frontend.pages.single-product', $data);
     }
+    
 
     public function single_product_quick_view(Request $request) {
         
@@ -269,6 +260,20 @@ class FrontendController extends Controller
     
 
     public function shop_checkout()
+    {
+        // session()->flush();
+        $data['categories'] = DB::table('category')->where('status', 1)->get();
+        $data['subcategories'] = DB::table('subcategory')->where('status', 1)->get();
+        $data['cart'] = session()->get('cart', []);
+        $totalSum = 0; 
+        foreach ($data['cart'] as $key => $item) {
+            $totalSum += $item['total_price']; 
+        }
+
+        $data['sub_total']=$totalSum;
+        return view('frontend.pages.shop-checkout')->with($data);
+    }
+    public function shop_checkout_old()
     {
         
         // if (!Auth::guard('customer')->check()) {
@@ -427,79 +432,106 @@ class FrontendController extends Controller
     {
         $productId = $request->product_id;
         $qty = $request->qty;
-        $price = $request->price;
-        // dd($qty);
-        // Fetch cart from session
+        $size = $request->size;
+        $total_value_hidden = $request->total_value_hidden;
+
+       
+        $product = DB::table('products')->where('id', $productId)->first();
+        
+        if (!$product) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Product not found.'
+            ]);
+        }
+
+       
         $cart = session()->get('cart', []);
-    
-        // Check if the product is already in the cart
+
+       
+        
         if (isset($cart[$productId])) {
+           
+            $cart[$productId]['qty'] += $qty;
             return response()->json([
                 'already_in_cart' => true
             ]);
+        } else {
+            
+            $cart[$productId] = [
+                'product_id' => $productId,
+                'title' => $product->title,
+                'price' => $product->price,
+                'discount' => $product->discount,
+                'qty' => $qty,
+                'total_price' => $total_value_hidden,
+                'size' => $size,
+                'image' => $product->thumbnail, 
+            ];
         }
-    
-        // Otherwise, add product to cart
-        $cart[$productId] = [
-            "qty" => $qty,
-            "price" => $price,
-            "product_id" => $productId
-        ];
+
+       
         session()->put('cart', $cart);
 
+     
         session()->put('cart_count', count($cart));
 
-        $new=session()->get('cart', []);
-        // Return the updated cart count
-        $cartCount = count($new);
-    
         return response()->json([
             'success' => true,
-            'cart_count' => $cartCount
-        ]);
+            'cart_count' => count($cart),
+            'message' => 'Product added to cart successfully!',
+        ]); 
     }
 
-    public function update(Request $request, $id)
-    {
-        $cart = session()->get('cart', []);
-        // dd(count($cart));
-        if (isset($cart[$id])) {
-            $cart[$id]['qty'] = $request->input('quantity');
-        }
-        
-        $totalItems = 0;
-        foreach ($cart as $item) {
-            $totalItems += $item['qty'];
-        }
-        
-        // dd(count($cart));
-        session()->put('cart', $cart);
-        session()->put('cart_count', count($cart));
+   
 
-        return redirect()->back()->with('success', 'Cart updated successfully.');
+
+    public function update(Request $request)
+    {
+        $cart = session()->get('cart');
+        $id = $request->id;
+        $qty = $request->qty;
+    
+        // Update the quantity in the cart
+        if (isset($cart[$id])) {
+            $discount_price=$cart[$id]['price']-$cart[$id]['discount'];
+            $cart[$id]['qty'] = $qty;
+            $cart[$id]['total_price'] = $discount_price * $qty;
+            session()->put('cart', $cart);
+        }
+    
+        // Recalculate subtotal
+        $sub_total = array_sum(array_column($cart, 'total_price'));
+    
+        // Return response with updated values
+        return response()->json([
+            'success' => true,
+            'item_total_price' => $cart[$id]['total_price'],
+            'sub_total' => $sub_total
+        ]);
     }
  
     
-    public function remove($id)
+    public function remove(Request $request)
     {
         $cart = session()->get('cart', []);
-        if (isset($cart[$id])) {
-            unset($cart[$id]);
-        }
-        
-        // dd($cart);
-        // Recalculate total items in the cart
-        $totalItems = 0;
-        foreach ($cart as $item) {
-            $totalItems += $item['qty'];
-        }
-        $count=count($cart);
+
+        // Remove item from cart array
+        unset($cart[$request->id]);
+
         // Update session
         session()->put('cart', $cart);
-        session()->put('cart_count', $count);
 
-        return redirect()->back()->with('success', 'Product removed successfully.');
+        // Calculate subtotal
+        $sub_total = collect($cart)->sum('total_price');
+
+        return response()->json([
+            'success' => true,
+            'sub_total' => $sub_total,
+            'cart_count' => count($cart)
+        ]);
     }
+
 
     //search
     public function search(Request $request)

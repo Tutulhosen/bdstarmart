@@ -28,9 +28,10 @@
 
     <!-- Customized Bootstrap Stylesheet -->
     <link href="{{asset('bdstarmart/css//style.css')}}" rel="stylesheet">
+    
 </head>
 
-<body>
+<body style="background-color: rgb(242 248 251)">
     <!-- Topbar Start -->
     @include('frontend.layout.top-header')
     <!-- Topbar End -->
@@ -63,6 +64,69 @@
 
     <!-- Template Javascript -->
     <script src="{{asset('bdstarmart/js/main.js')}}"></script>
+    <script>
+        $(document).ready(function() {
+       
+            $.ajax({
+                url: '{{ route("cart.count") }}',
+                method: 'GET',
+                success: function(response) {
+                
+                    $('#cart_count').text(response.cart_count);
+                },
+                error: function() {
+                    console.log('Failed to fetch cart count.');
+                }
+            });
+
+            $('.add_cart_btn_direct').click(function(e) {
+                e.preventDefault();
+                
+                var productId = $(this).data('id');
+            
+                var qty = 1;
+                var total_value_hidden = $('#total_value_hidden').val();
+                var selectedSize = $('input[name="size"]:checked').val();
+                
+                if (!selectedSize) {
+                    var size = null;
+                }else{
+                    var size =selectedSize;
+                }
+            
+                $.ajax({
+                    url: '{{ route("cart.add") }}',
+                    method: 'POST',
+                    data: {
+                        product_id: productId,
+                        qty: qty,
+                        size: size,
+                        total_value_hidden: total_value_hidden,
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            alert('Product added to cart successfully!');
+
+                        
+                            $('#cart_count').text(response.cart_count);
+
+                        
+                        } else if (response.already_in_cart) {
+                            alert('Product is already in the cart.');
+                        } else {
+                            alert('Failed to add product to cart: ' + response.message);
+                        }
+                    },
+                    error: function(xhr) {
+                        alert('Failed to add product to cart.');
+                    }
+                });
+            });
+        });
+
+    </script>
+    @yield('scripts')
 </body>
 
 </html>

@@ -1,227 +1,169 @@
 @extends('frontend.layout.app')
 
 @section('main-content')
-<section>
-    <div class="main">
-        <div class="container-for-cart">
+    @include('frontend.pages.navbar_without_slider')
 
-            <section class="cart-items">
-                <h1 style="font-size: 2rem; font-weight: 700; color: #333; margin-bottom: 20px;">Checkout</h1>
-
-                <ul role="list" class="payment-details">
-                    <!-- Payment Details Section -->
-                    <h2>Payment Details</h2>
-                    <form id="checkout-form">
-                        @csrf
-                        <!-- Loop through the cart items and add hidden inputs -->
-                        @foreach ($cart as $item)
-                            <input type="hidden" name="product_ids[]" value="{{ $item['product_id'] }}">
-                            <input type="hidden" name="quantities[]" value="{{ $item['qty'] }}">
-                        @endforeach
-                        <!-- Hidden field for total price -->
-                        <input type="hidden" value="{{ $total }}" name="total" id="total">
-                        
-                        <!-- Full Name and Phone Number -->
-                        <div class="input-group">
-                            <div>
-                                <label for="full-name">Full Name <span style="color: red;">*</span></label>
-                                <input type="text" id="full-name" name="full_name" placeholder="Full Name" required value="{{ Auth::guard('customer')->user()->name ?? '' }}">
-                            </div>
-                            <div>
-                                <label for="phone-number">Phone Number <span style="color: red;">*</span></label>
-                                <input type="text" id="phone-number" name="phone_number" placeholder="Phone Number" required value="{{ Auth::guard('customer')->user()->phone ?? '' }}">
-                            </div>
+    <!-- Cart Start -->
+    <div class="container-fluid pt-5">
+        <div class="row px-xl-5">
+            @if (!empty($cart))
+                <div class="col-lg-8 table-responsive mb-5">
+                    <table class="table table-bordered text-center mb-0">
+                        <thead class="bg-secondary text-dark">
+                            <tr>
+                                <th>SL</th>
+                                <th>Image</th>
+                                <th>Products</th>
+                                <th>Price</th>
+                                <th>Size</th>
+                                <th>Quantity</th>
+                                <th>Total</th>
+                                <th>Remove</th>
+                            </tr>
+                        </thead>
+                        <tbody class="align-middle">
+                            @foreach($cart as $key => $item)
+                                <tr>
+                                    <td class="align-middle">{{ $key + 1 }}</td>
+                                    <td class="" style="text-align: left ">
+                                        <img src="{{ asset('images/galleries/' . $item['image']) }}" alt="" style="width: 50px;"> 
+                                    </td>
+                                    <td class="align-middle"> {{ $item['title'] }}</td>
+                                    <td class="align-middle">{{ $item['price']-$item['discount'] }}</td>
+                                    <td class="align-middle">{{ $item['size'] ?? ' ' }}</td>
+                                    <td class="align-middle">
+                                        <div class="input-group quantity mx-auto" style="width: 100px;">
+                                            <div class="input-group-btn">
+                                                <button class="btn btn-sm btn-primary btn-minus" data-id="{{ $key }}">
+                                                    <i class="fa fa-minus"></i>
+                                                </button>
+                                            </div>
+                                            <input type="text" class="form-control form-control-sm bg-secondary text-center product-quantity" value="{{ $item['qty'] }}" data-id="{{ $key }}">
+                                            <div class="input-group-btn">
+                                                <button class="btn btn-sm btn-primary btn-plus" data-id="{{ $key }}">
+                                                    <i class="fa fa-plus"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="align-middle total-price" data-id="{{ $key }}">${{ $item['total_price'] }}</td>
+                                    <td class="align-middle">
+                                        <button class="btn btn-sm btn-primary btn-remove" data-id="{{ $key }}"><i class="fa fa-times"></i></button>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card border-secondary mb-5">
+                        <div class="card-header bg-secondary border-0">
+                            <h4 class="font-weight-semi-bold m-0">Cart Summary</h4>
                         </div>
                         
-                        <!-- Email Address and Additional Address -->
-                        <div class="input-group">
-                            <div>
-                                <label for="email-address">Email Address</label>
-                                <input type="email" id="email-address" name="email_address" placeholder="Email Address" required value="{{ Auth::guard('customer')->user()->email ?? '' }}">
+                        <div class="card-footer border-secondary bg-transparent">
+                            <div class="d-flex justify-content-between mt-2">
+                                <h5 class="font-weight-bold"> SubTotal</h5>
+                                <h5 class="font-weight-bold" id="sub-total">${{ $sub_total }}</h5>
                             </div>
-                            <div>
-                                <label for="additional-address">Your Location(It's necessary for delivery charge)<span style="color: red;">*</span></label>
-                                {{-- <input type="text" id="additional-address" name="additional_address" placeholder="Additional Address" value="{{ Auth::guard('customer')->user()->address ?? '' }}"> --}}
-                                <label>
-                                    <input type="radio" class="additional-address" name="additional_address" value="inside" required>
-                                    Inside Dhaka
-                                    <input type="radio" class="additional-address" name="additional_address" value="outside" required>
-                                    Outside Dhaka
-                                </label>
-                                
-                                
-                                 
-                            </div>
+                            <button class="btn btn-block btn-primary my-3 py-3">Proceed To Checkout</button>
                         </div>
-
-                        <!-- Delivery Address -->
-                        <label for="delivery-address">Delivery Address<span style="color: red;">*</span></label>
-                        {{-- <input type="text" id="delivery-address" name="delivery_address" placeholder="Delivery Address" required value="{{ Auth::guard('customer')->user()->delivery_address ?? '' }}"> --}}
-                        <textarea d="delivery-address" name="delivery_address" cols="30" rows="5" >{{ Auth::guard('customer')->user()->delivery_address ?? '' }}</textarea>
-
-                        <!-- Payment Method -->
-                        <fieldset class="payment-methods">
-                            <legend>Payment Method</legend>
-                            {{-- <div class="payment-method">
-                                <input type="radio" id="credit-card" name="payment_method" value="credit-card" required>
-                                <label for="credit-card" class="payment-label">
-                                    <div class="payment-icon" style="background: url('path-to-credit-card-icon.png') no-repeat center center; background-size: contain;"></div>
-                                    <span>Credit Card</span>
-                                </label>
-                            </div>
-                            <div class="payment-method">
-                                <input type="radio" id="paypal" name="payment_method" value="paypal">
-                                <label for="paypal" class="payment-label">
-                                    <div class="payment-icon" style="background: url('path-to-paypal-icon.png') no-repeat center center; background-size: contain;"></div>
-                                    <span>PayPal</span>
-                                </label>
-                            </div> --}}
-                            <div class="payment-method">
-                                <input type="radio" id="cash-on-delivery" name="payment_method" value="cash-on-delivery" checked>
-                                <label for="cash-on-delivery" class="payment-label">
-                                    <div class="payment-icon" style="background: url('path-to-cash-on-delivery-icon.png') no-repeat center center; background-size: contain;"></div>
-                                    <span>Cash on Delivery</span>
-                                </label>
-                            </div>
-                        </fieldset>
-
-                        <!-- Submit Button -->
-                        <button type="submit" class="checkout-button">Submit</button>
-                    </form>
-                </ul>
+                    </div>
+                </div>
+            @else
+            
+            <section style="margin:auto; text-align:center">
+                <div class="cart-section">
+                    <div class="container">
+                        <h3>Your cart is empty</h3>
+                        <a href="{{route('home')}}" class="btn btn-primary" style="margin-top: 15px; border-radius:5px">Continue Shopping</a>
+                    </div>
+                </div>
             </section>
-
-            <!-- Order Summary Section -->
-            <section class="order-summary">
-                <h2>Order Summary</h2>
-                <dl>
-                    <!-- Subtotal -->
-                    <div style="display: flex; justify-content: space-between;">
-                        <dt>Subtotal</dt>
-                        <dd>BDT {{ $subtotal }}</dd>
-                    </div>
-                    
-                    <!-- Discount -->
-                    {{-- <div style="padding-top: 16px; display: flex; justify-content: space-between;">
-                        <dt>Total Discount</dt>
-                        <dd>BDT {{ $discount }}</dd>
-                    </div> --}}
-                    
-                    <!-- Delivery Charge -->
-                    <div style="padding-top: 16px; display: flex; justify-content: space-between;">
-                        <dt>Delivery Charge</dt>
-                        <dd id="delivery-charge">BDT {{ $shipping }}</dd>
-                    </div>
-
-                    <!-- Total -->
-                    <div style="border-top: 3px solid #ddd; padding-top: 16px; display: flex; justify-content: space-between; margin-bottom: 16px;">
-                        <dt>Total</dt>
-                        <dd id="total-amount" data-total="{{ $total }}">BDT {{ $total }}</dd>
-                    </div>
-                </dl>
-            </section>
-
+            
+              
+            @endif
+            
         </div>
     </div>
-</section>
+    <!-- Cart End -->
 @endsection
 
 @section('scripts')
-<script>
-    $(document).ready(function() {
-        $(document).on('click', '.additional-address', function() {
-            let location = $('input[name="additional_address"]:checked').val();
-            let charge = 0;
+    <script>
+        $(document).ready(function() {
+            // Quantity increase
+            $('.btn-plus').click(function() {
+                var id = $(this).data('id');
+                updateQuantity(id, 1);
+            });
 
-            if (location == 'inside') {
-                charge = 70;
-            } else {
-                charge = 120;
+            // Quantity decrease
+            $('.btn-minus').click(function() {
+                var id = $(this).data('id');
+                updateQuantity(id, -1);
+            });
+
+            // Remove item from cart
+            $('.btn-remove').click(function() {
+                var id = $(this).data('id');
+                removeItem(id);
+            });
+
+            // Update quantity function
+            function updateQuantity(id, change) {
+                var input = $('input[data-id="' + id + '"]');
+                var newQty = parseInt(input.val()) + change;
+                if (newQty < 1) newQty = 1; 
+                input.val(newQty);
+
+                $.ajax({
+                    url: "{{ route('cart.update') }}",
+                    type: "POST",
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        id: id,
+                        qty: newQty
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Update total price for the specific item
+                            $('.total-price[data-id="' + id + '"]').text('$' + response.item_total_price);
+
+                            // Update subtotal
+                            $('#sub-total').text('$' + response.sub_total);
+                        }
+                    }
+                });
             }
 
-            // Update the delivery charge in the UI
-            $('#delivery-charge').text('BDT ' + charge);
+            // Remove item function
+            function removeItem(id) {
+                $.ajax({
+                    url: "{{ route('cart.remove') }}", 
+                    type: "POST",
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        id: id
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Remove the row from the table
+                            $('button[data-id="' + id + '"]').closest('tr').remove();
 
-            // Get the original total value (assuming it's stored in a data attribute or variable)
-            let originalTotal = parseFloat($('#total-amount').data('total'));
+                            // Update the subtotal
+                            $('#sub-total').text('$' + response.sub_total);
 
-            // Recalculate the total and round it to the nearest integer
-            let newTotal = Math.round(originalTotal + charge);
+                            // If the cart is empty, show the empty cart message
+                            if (response.cart_count === 0) {
+                                window.location.href = "{{ route('shop.checkout') }}";
+                            }
 
-            // Update the total in the UI without decimals
-            $('#total-amount').text('BDT ' + newTotal);
-            $('#total').val(newTotal);
-        });
-
-
-        $('#checkout-form').on('submit', function(e) {
-            e.preventDefault(); // Prevent form from submitting normally
-
-            // Gather form data
-            let formData = $(this).serialize();
-           
-            
-            // AJAX request
-            $.ajax({
-                url: '{{ route("checkout") }}', 
-                type: 'POST',
-                data: formData,
-                headers: {
-                    'X-CSRF-TOKEN': $('input[name=_token]').val() 
-                },
-                success: function(response) {
-                    // Clear localStorage
-                    localStorage.clear();
-
-                    // Show Toastr success notification with a cancel button
-                    toastr.options = {
-                        "closeButton": true, // Adds the close (X) button
-                        "progressBar": true, // Progress bar at the bottom
-                        "positionClass": "toast-top-right", // Position of the toaster
-                        "onclick": null, // No click handler
-                        "showDuration": "300",
-                        "hideDuration": "1000",
-                        "timeOut": "5000", // Auto-close after 5 seconds
-                        "extendedTimeOut": "1000",
-                        "showEasing": "swing",
-                        "hideEasing": "linear",
-                        "showMethod": "fadeIn",
-                        "hideMethod": "fadeOut",
-                    };
-
-                    // Display success message with a cancel button
-                    toastr.success('Order placed successfully!', 'Success', {
-                        closeButton: true,
-                        tapToDismiss: false, // Disables auto-dismiss when clicked
-                        timeOut: 0, // Ensures the toast doesn't disappear automatically
-                        extendedTimeOut: 0, // Keeps it until user manually closes
-                        onclick: function() {
-                            toastr.clear(); // Optional: dismiss toaster on click
                         }
-                    });
-
-                    setTimeout(function() {
-                        if (response.isCustomerlogin==true) {
-                            window.location.href = '{{ route("user.profile") }}';
-                        } else {
-                            let id =response.id;
-                            window.location.href = '{{ route("product.invoice", ":id") }}'.replace(':id', id);
-                        }
-                    }, 3000);
-                },
-                error: function(response) {
-                    // Handle validation errors or other errors
-                    if (response.status === 422) {
-                        let errors = response.responseJSON.errors;
-                        $.each(errors, function(key, value) {
-                            alert(value); // Display error messages (customize as needed)
-                        });
-                    } else {
-                        alert('Something went wrong, please try again.');
                     }
-                }
-            });
+                });
+            }
         });
-    });
-</script>
+
+    </script>
 @endsection
