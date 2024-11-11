@@ -227,6 +227,48 @@
             });
         });
 
+        $('#order_now_btn').click(function(e) {
+            e.preventDefault();
+            var productId = $(this).data('id');
+            var qty = $('#qty').val();
+            var total_value_hidden = $('#total_value_hidden').val();
+            var selectedSize = $('input[name="size"]:checked').val();
+           
+            if (!selectedSize) {
+                var size = null;
+            }else{
+                var size =selectedSize;
+            }
+           
+            $.ajax({
+                url: '{{ route("cart.add") }}',
+                method: 'POST',
+                data: {
+                    product_id: productId,
+                    qty: qty,
+                    size: size,
+                    total_value_hidden: total_value_hidden,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                            
+                        $('#cart_count').text(response.cart_count);
+                        window.location.href = "{{ route('shop.checkout') }}";
+
+                    
+                    } else if (response.already_in_cart) {
+                        window.location.href = "{{ route('shop.checkout') }}";
+                    } else {
+                        alert('Something went wrong.');
+                    }
+                },
+                error: function(xhr) {
+                    alert('Failed to add product to cart.');
+                }
+            });
+        });
+
         
     });
 </script>

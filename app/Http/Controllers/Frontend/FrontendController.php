@@ -179,6 +179,31 @@ class FrontendController extends Controller
         
     }
 
+    public function updateSize(Request $request)
+    {
+        $cart = session()->get('cart', []);
+
+        
+        if (isset($cart[$request->id])) {
+          
+            $cart[$request->id]['size'] = $request->size;
+
+          
+            session()->put('cart', $cart);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Size updated successfully',
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Item not found in cart',
+        ]);
+    }
+
+
     public function single_product($id) {
         $single_product = DB::table('products')->where('status', 1)->where('id', $id)->first();
         if (!$single_product) {
@@ -515,20 +540,22 @@ class FrontendController extends Controller
     public function remove(Request $request)
     {
         $cart = session()->get('cart', []);
-
-        // Remove item from cart array
+    
+        // Remove the item from the cart
         unset($cart[$request->id]);
-
-        // Update session
         session()->put('cart', $cart);
+        
+        // Calculate the new subtotal
+        $sub_total = array_sum(array_column($cart, 'total_price'));
+        
+        // Count the remaining items in the cart
+        $cart_count = count($cart);
 
-        // Calculate subtotal
-        $sub_total = collect($cart)->sum('total_price');
-
+        // Return success response with updated values
         return response()->json([
             'success' => true,
             'sub_total' => $sub_total,
-            'cart_count' => count($cart)
+            'cart_count' => $cart_count,
         ]);
     }
 

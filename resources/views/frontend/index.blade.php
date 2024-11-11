@@ -65,10 +65,11 @@
                         </div>
                         <div class="card-footer d-flex justify-content-between bg-light border">
                             <a href="{{route('frontend.single.product.page', $product['id'])}}" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View Detail</a>
-                            {{-- <button type="button" class="btn btn-sm text-dark p-0" id="add_cart_btn_direct" data-id="{{ $product['id'] }}"><i class="fas fa-shopping-cart text-primary mr-1" ></i>Add To Cart</button> --}}
-                            <button class="btn btn-sm text-dark p-0 add_cart_btn_direct"   data-id="{{ $product['id'] }}" data-id="{{ $product['id'] }}">
-                                <i class="fas fa-shopping-cart text-primary mr-1" ></i> Add To Cart
+                            
+                            <button class="btn btn-sm text-dark p-0 order_now_btn_direct"   data-price="{{ $product['price']-$product['discount'] }}" data-id="{{ $product['id'] }}">
+                                <i class="fa fa-receipt mr-1 text-success"></i> Order Now
                             </button>
+                            
                         </div>
                     </div>
                 </div>

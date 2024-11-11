@@ -2,6 +2,12 @@
     $meta=DB::table('meta')->where('status', 1)->first();
     $user=DB::table('users')->where('role_id', 1)->first();
 ?>
+<style>
+    .order_now_btn:hover {
+        color: green !important;
+    }
+</style>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -79,21 +85,21 @@
                 }
             });
 
-            $('.add_cart_btn_direct').click(function(e) {
+            $('.order_now_btn_direct').click(function(e) {
                 e.preventDefault();
                 
                 var productId = $(this).data('id');
-            
+    
                 var qty = 1;
-                var total_value_hidden = $('#total_value_hidden').val();
+                var total_value_hidden = $(this).data('price');
                 var selectedSize = $('input[name="size"]:checked').val();
-                
+        
                 if (!selectedSize) {
                     var size = null;
                 }else{
                     var size =selectedSize;
                 }
-            
+
                 $.ajax({
                     url: '{{ route("cart.add") }}',
                     method: 'POST',
@@ -106,20 +112,19 @@
                     },
                     success: function(response) {
                         if (response.success) {
-                            alert('Product added to cart successfully!');
-
-                        
+                            
                             $('#cart_count').text(response.cart_count);
+                            window.location.href = "{{ route('shop.checkout') }}";
 
                         
                         } else if (response.already_in_cart) {
-                            alert('Product is already in the cart.');
+                            window.location.href = "{{ route('shop.checkout') }}";
                         } else {
-                            alert('Failed to add product to cart: ' + response.message);
+                            alert('Something went wrong.');
                         }
                     },
                     error: function(xhr) {
-                        alert('Failed to add product to cart.');
+                        alert('Something went wrong.');
                     }
                 });
             });

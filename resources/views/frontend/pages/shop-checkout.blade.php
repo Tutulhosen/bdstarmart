@@ -23,6 +23,9 @@
                         </thead>
                         <tbody class="align-middle">
                             @foreach($cart as $key => $item)
+                            <?php 
+                                $product=DB::table('products')->where('id', $item['product_id'])->first();
+                            ?>
                                 <tr>
                                     <td class="align-middle">{{ $key + 1 }}</td>
                                     <td class="" style="text-align: left ">
@@ -30,7 +33,33 @@
                                     </td>
                                     <td class="align-middle"> {{ $item['title'] }}</td>
                                     <td class="align-middle">{{ $item['price']-$item['discount'] }}</td>
-                                    <td class="align-middle">{{ $item['size'] ?? ' ' }}</td>
+                                    @if (!empty($product->size))
+                                        
+                                        <td class="align-middle">
+                                            @php
+                                                $sizes = json_decode($product->size); 
+                                            @endphp
+                                            <select name="size" class="size-selector" data-id="{{ $key }}">
+                                                <option value="">--select--</option>
+                                                @foreach (json_decode($sizes) as $size)
+                                                    <?php 
+                                                        if ($size== $item['size']) {
+                                                            echo $selected='selected';
+                                                        } else {
+                                                            echo $selected=' ';
+                                                        }
+                                                        
+                                                    ?>
+                                                    <option value="{{$size}}" {{$selected}}>{{size_name($size)}}</option>
+                                                @endforeach
+                                            </select>
+                                        </td>
+                                    
+                                    @else
+                                        <td class="align-middle"></td>
+                                    @endif
+                                    
+                                    
                                     <td class="align-middle">
                                         <div class="input-group quantity mx-auto" style="width: 100px;">
                                             <div class="input-group-btn">
@@ -46,7 +75,7 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="align-middle total-price" data-id="{{ $key }}">${{ $item['total_price'] }}</td>
+                                    <td class="align-middle total-price" data-id="{{ $key }}">{{ $item['total_price'] }} TK</td>
                                     <td class="align-middle">
                                         <button class="btn btn-sm btn-primary btn-remove" data-id="{{ $key }}"><i class="fa fa-times"></i></button>
                                     </td>
@@ -64,7 +93,7 @@
                         <div class="card-footer border-secondary bg-transparent">
                             <div class="d-flex justify-content-between mt-2">
                                 <h5 class="font-weight-bold"> SubTotal</h5>
-                                <h5 class="font-weight-bold" id="sub-total">${{ $sub_total }}</h5>
+                                <h5 class="font-weight-bold" id="sub-total">{{ $sub_total }} TK</h5>
                             </div>
                             <button class="btn btn-block btn-primary my-3 py-3">Proceed To Checkout</button>
                         </div>
@@ -128,16 +157,40 @@
                     success: function(response) {
                         if (response.success) {
                             // Update total price for the specific item
-                            $('.total-price[data-id="' + id + '"]').text('$' + response.item_total_price);
+                            $('.total-price[data-id="' + id + '"]').text( response.item_total_price + ' TK');
 
                             // Update subtotal
-                            $('#sub-total').text('$' + response.sub_total);
+                            $('#sub-total').text( response.sub_total + ' TK');
                         }
                     }
                 });
             }
 
-            // Remove item function
+            $('.size-selector').change(function() {
+                var id = $(this).data('id'); 
+                var selectedSize = $(this).val(); 
+               
+                $.ajax({
+                    url: "{{ route('cart.updateSize') }}", 
+                    type: "POST",
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        id: id,
+                        size: selectedSize
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            alert('Size updated successfully!');
+                            
+                        } else {
+                            alert('Failed to update size.');
+                        }
+                    }
+                });
+            });
+
+            
+           // Remove item function
             function removeItem(id) {
                 $.ajax({
                     url: "{{ route('cart.remove') }}", 
@@ -152,17 +205,20 @@
                             $('button[data-id="' + id + '"]').closest('tr').remove();
 
                             // Update the subtotal
-                            $('#sub-total').text('$' + response.sub_total);
+                            $('#sub-total').text(response.sub_total + ' TK');
 
-                            // If the cart is empty, show the empty cart message
+                            // Update the cart count
+                            $('#cart_count').text(response.cart_count);
+
+                            // If the cart is empty, redirect or show the empty cart message
                             if (response.cart_count === 0) {
                                 window.location.href = "{{ route('shop.checkout') }}";
                             }
-
                         }
                     }
                 });
             }
+
         });
 
     </script>
