@@ -85,13 +85,14 @@ Route::get('/search', [FrontendController::class, 'search'])->name('search.resul
 Route::post('/single-product/quick_view', [FrontendController::class, 'single_product_quick_view'])->name('frontend.single.product.quick_view');
 Route::get('/shop/page', [FrontendController::class, 'shop_page'])->name('shop.page');
 Route::post('/cart/update-size', [FrontendController::class, 'updateSize'])->name('cart.updateSize');
+Route::get('/checkout/page', [FrontendController::class, 'checkout_page'])->name('checkout.page');
 //customer profile
 Route::get('/profile', [ProfileController::class, 'profile'])->name('user.profile');
 Route::get('/profile/update/page', [ProfileController::class, 'profile_update_page'])->name('user.profile.update.page');
 Route::post('/profile/update', [ProfileController::class, 'profile_update'])->name('user.profile.update');
 Route::get('/address/update/page', [ProfileController::class, 'address_update_page'])->name('user.address.update.page');
 Route::post('/address/update', [ProfileController::class, 'address_update'])->name('user.address.update');
-Route::get('/invoice/{id}', [ProfileController::class, 'invoice'])->name('product.invoice');
+Route::get('/invoice/thankyou', [ProfileController::class, 'invoice'])->name('product.invoice');
 Route::get('/download-invoice/{id}', [ProfileController::class, 'downloadInvoice'])->name('download.invoice');
 
 //get dependency data route

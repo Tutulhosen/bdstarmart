@@ -332,61 +332,77 @@ class FrontendController extends Controller
 
     public function checkout(Request $request)
     {
+        
         // Validate the incoming request
         $request->validate([
             'full_name' => 'required|string|max:255',
             'phone_number' => 'required|string|max:15',
-            'email_address' => 'required|email|max:255',
-            'additional_address' => 'nullable|string|max:255',
-            'delivery_address' => 'required|string|max:255',
-            'payment_method' => 'required|string',
+           
         ]);
         $additionalAddress = $request->input('additional_address');
        
         $product_ids = $request->input('product_ids');
         $quantities = $request->input('quantities');
-
+        $total = $request->input('total');
+        $delivery_charge=(int)$request->input('shipping_method');
+       
         // Retrieve the last order_code
         $lastOrder = DB::table('customer_order')
-            ->orderBy('id', 'desc')
+            ->orderBy('order_code', 'desc')
             ->whereNotNull('order_code')
             ->first();
-
+        
         $newOrderNumber = 1;
 
         if ($lastOrder) {
             $lastOrderCode = $lastOrder->order_code;
-            $lastOrderNumber = (int)str_replace('GM-', '', $lastOrderCode);
+            $lastOrderNumber = (int)str_replace('BSM-', '', $lastOrderCode);
             $newOrderNumber = $lastOrderNumber + 1;
         }
 
         // Format the new order code 
-        $newOrderCode = 'GM-' . str_pad($newOrderNumber, 2, '0', STR_PAD_LEFT);
-
+        $newOrderCode = 'BSM-' . str_pad($newOrderNumber, 2, '0', STR_PAD_LEFT);
+    
         // Flag to track whether the order insertion was successful
         $isInserted = false;
-
-        foreach ($product_ids as $index => $product_id) {
-            $id = DB::table('customer_order')->insertGetId([
-                'customer_id' => Auth::guard('customer')->user()->id ?? null,
-                'product_id' => $product_id,
-                'products_qty' => $quantities[$index],
-                'total_price' => $request->input('total'),
-                'full_name' => $request->input('full_name'),
-                'delivery_address' => $request->input('delivery_address'),
-                'phone_number' => $request->input('phone_number'),
-                'email_address' => $request->input('email_address'),
-                'additional_information' => $additionalAddress, 
-                'payment_method' => $request->input('payment_method'),
-                'order_code' => $newOrderCode
-            ]);
-
-            if ($id) {
-                $isInserted = true; // Mark as inserted
-            }
+        $total_array=[];
+     
+  
+       
+        //store order 
+        
+        $id = DB::table('customer_order')->insertGetId([
+            'customer_id' => Auth::guard('customer')->user()->id ?? null,
+            'total_price' => $request->input('total_price_sum'),
+            'full_name' => $request->input('full_name'),
+            'delivery_address' => $request->input('delivery_address'),
+            'phone_number' => $request->input('phone_number'),
+            'email_address' => $request->input('email_address'),
+            'additional_information' => $additionalAddress, 
+            'payment_method' => $request->input('shipping_method'),
+            'order_code' => $newOrderCode,
+            'delivery_charge' => $request->input('shipping_cost'),
+        ]);
+        if ($id) {
+            $isInserted = true;
         }
-
+        
+        
         if ($isInserted) {
+            $cart = session()->get('cart', []);
+          
+            foreach ($cart as $value) {
+                DB::table('order_product')->insert([
+                    'order_id' => $id,
+                    'product_id' => $value['product_id'],
+                    'price' => $value['price'],
+                    'discount' => $value['discount'],
+                    'qty' => $value['qty'],
+                    'total_price' => $value['total_price'],
+                    'size' => $value['size'],
+                    'title' => $value['title'],
+                ]);
+            }
             $customer = Auth::guard('customer')->user();
             if ($customer) {
                 // Remove all session data and log the user back in
@@ -397,9 +413,21 @@ class FrontendController extends Controller
                 // Remove all session data
                 session()->flush();
                 $isCustomerlogin = false;
-                $isCustomerlogin = false;
             }
+           // Get the admin email
+            $admin_user = DB::table('users')->where('role_id', 1)->first();
+            $admin_email = $admin_user->company_email;
 
+            // Prepare email details
+            $email_subject = "New Order Received";
+            $email_body = "A new order has been placed with order code: " . $newOrderCode;
+
+            // Send the email
+            // Mail::raw($email_body, function ($message) use ($admin_email, $email_subject) {
+            //     $message->to($admin_email)
+            //             ->subject($email_subject);
+            // });
+            
             return response()->json([
                 'success' => true,
                 'message' => 'Order placed successfully',
@@ -591,6 +619,17 @@ class FrontendController extends Controller
         $category = DB::table('category')->where('status', 1)->get();
         $sub_title='search';
         return view('frontend.pages.search_results', compact('products', 'category', 'sub_title'));
+    }
+
+    //checkout page
+    public function checkout_page(){
+        $cart = session()->get('cart', []);
+        // dd($cart);
+        $data['cart']=$cart;
+        $data['delivery_charge'] = DB::table('delivery_charge')->where('status', 1)->get();
+        $data['categories'] = DB::table('category')->where('status', 1)->get();
+        $data['subcategories'] = DB::table('subcategory')->where('status', 1)->get();
+        return view('frontend.pages.checkout_page')->with($data);
     }
 
     
