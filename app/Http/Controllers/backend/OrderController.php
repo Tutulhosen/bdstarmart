@@ -12,14 +12,14 @@ class OrderController extends Controller
 {
     public function orderList(){
         $data['order_list'] = DB::table('customer_order')
-        ->select('order_code', DB::raw('MAX(id) as id'), DB::raw('MAX(total_price) as total_price'), DB::raw('MAX(full_name) as full_name'), DB::raw('MAX(order_status) as order_status'), DB::raw('MAX(order_date) as order_date'), DB::raw('MAX(phone_number) as phone_number'))
+        ->select('order_code', DB::raw('MAX(id) as id'), DB::raw('MAX(total_price) as total_price'), DB::raw('MAX(full_name) as full_name'), DB::raw('MAX(order_status) as order_status'), DB::raw('MAX(order_date) as order_date'), DB::raw('MAX(phone_number) as phone_number'), DB::raw('MAX(note) as note'))
         ->groupBy('order_code')
-        ->orderBy('id', 'DESC')
+        ->orderBy('order_code', 'DESC')
         ->paginate(10);
         
 
         // dd($data['order_list']);
-        
+        // dd($data['order_list']);
         return view('admin.order.list')->with($data);
     }
 
@@ -35,16 +35,26 @@ class OrderController extends Controller
 
         // Search for products by title
         $products = DB::table('products')->where('title', 'LIKE', '%' . $searchTerm . '%')
-            ->select('id', 'title', 'price','discount', 'thumbnail') // Select relevant fields
+            ->select('id', 'title', 'price','discount', 'thumbnail', 'size') // Select relevant fields
             ->get();
-
+        $products = $products->map(function ($product) {
+            $product->size = json_decode(json_decode($product->size)); 
+            return $product;
+        });
+        
         return response()->json($products);
+    }
+
+    public function getSizeName(Request $request)
+    {
+        $size = DB::table('size')->where('id', $request->id)->select('size')->first();
+        return response()->json(['size_name' => $size->size]);
     }
 
     public function store(Request $request)
     {
         
-        // dd($request->all());
+        
         // Retrieve and parse the input data
         $product_ids = $request->input('product_ids');
         foreach ($product_ids as $key => $value) {
@@ -56,6 +66,11 @@ class OrderController extends Controller
             $new_quantities = explode(',', $value);
         }
 
+        $size = $request->input('sizes');
+        foreach ($size as $key => $value) {
+            $new_size = explode(',', $value);
+        }
+
         $subtotals = $request->input('subtotals');
         foreach ($subtotals as $key => $value) {
             $new_subtotals = explode(',', $value);
@@ -65,6 +80,12 @@ class OrderController extends Controller
         $delivery_charge = (int)$request->input('delivery_charge_hidden');
         $discount = (int)$request->input('discount_hidden');
         $total_sum=($total+$delivery_charge)-$discount;
+        if ($delivery_charge) {
+            $d_charge=$delivery_charge;
+        } else {
+            $d_charge=$request->input('shipping_method');
+        }
+        
         // dd($delivery_charge);
         // Retrieve the last order_code
         $lastOrder = DB::table('customer_order')
@@ -85,35 +106,53 @@ class OrderController extends Controller
 
         $isInserted = false;
 
-        // Loop through each product and insert the order
-        foreach ($new_product_ids as $index => $product_id) {
-            $quantity = $new_quantities[$index];
-            $subtotal = $new_subtotals[$index];
 
-            // Create a new order in the database
-            $id = DB::table('customer_order')->insertGetId([
-                'customer_id' => null, 
-                'product_id' => $product_id,
-                'products_qty' => $quantity,
-                'total_price' => $total_sum,
-                'full_name' => $request->input('full_name'),
-                'delivery_address' => $request->input('delivery_address'),
-                'phone_number' => $request->input('phone_number'),
-                'order_code' => $newOrderCode,
-                'delivery_charge' => $delivery_charge,
-                'discount' => $discount,
-            ]);
-
-            if ($id) {
-                $isInserted = true;
-            }
+        $id = DB::table('customer_order')->insertGetId([
+            'customer_id' => null,
+            'total_price' => $request->input('grand_total_hidden'),
+            'full_name' => $request->input('full_name'),
+            'delivery_address' => $request->input('delivery_address'),
+            'phone_number' => $request->input('phone_number'),
+            'email_address' => $request->input('email_address'),
+            'payment_method' => $request->input('shipping_method'),
+            'order_code' => $newOrderCode,
+            'delivery_charge' => $d_charge,
+            'discount' => $request->input('discount_hidden'),
+        ]);
+        if ($id) {
+            $isInserted = true;
         }
-
+        
+        
         if ($isInserted) {
+          
+            foreach ($new_product_ids as $index => $product_id) {
+
+                $quantity = $new_quantities[$index];
+                $subtotal = $new_subtotals[$index];
+                $size_s = $new_size[$index];
+
+                $productes=DB::table('products')->where('id', $product_id)->first();
+                $total_prices=($productes->price-$productes->discount)*$quantity;
+                DB::table('order_product')->insert([
+                    'order_id' => $id,
+                    'product_id' => $product_id,
+                    'price' => $productes->price,
+                    'discount' => $productes->discount,
+                    'qty' => $quantity,
+                    'total_price' => $total_prices,
+                    'size' => $size_s,
+                    'title' => $productes->title,
+                ]);
+            }
             return redirect()->route('admin.order.list')->with('success', 'Order placed successfully.');
+            
         } else {
             return redirect()->back()->with('error', 'Failed to place the order.');
         }
+
+
+        
     }
 
     
@@ -127,9 +166,11 @@ class OrderController extends Controller
         ->where('customer_order.order_code', $single_order->order_code)
         ->select('products.title as title','customer_order.products_qty as products_qty' ,'customer_order.product_id as product_id' ,'products.thumbnail as thumbnail', 'products.price as offer_cost', 'products.discount as discount', 'customer_order.delivery_charge as delivery_charge')
         ->get();
-        
+        $order_invoice_new=DB::table('order_product')->where('order_id', $single_order->id)->get();
+        // dd($order_invoice_new);
         $data['single_order']=$single_order;
         $data['order_invoice']=$order_invoice;
+        $data['order_invoice_new']=$order_invoice_new;
         $data['delivery_charge']=DB::table('delivery_charge')->where('status', 1)->get();
         // dd($data);   
         
@@ -359,6 +400,28 @@ class OrderController extends Controller
         $data['order_invoice']=$order_invoice;
         $data['sub_title']='invoice';
         
+        return view('frontend.pages.invoice_new')->with($data);
+    }
+
+    public function invoiceThankyou(Request $request)
+    {
+        $id = $request->input('order_id');  // Get the dynamic order ID from the request
+
+        $data['category'] = DB::table('category')->where('status', 1)->get();
+        $single_order = DB::table('customer_order')->where('id', $id)->first();
+
+        if ($single_order) {
+            $order_invoice = DB::table('products')
+                ->join('customer_order', 'customer_order.product_id', 'products.id')
+                ->where('customer_order.order_code', $single_order->order_code)
+                ->select('products.title as title', 'customer_order.products_qty', 'customer_order.additional_information as delivery_charge', 'products.price as offer_cost', 'products.discount as discount')
+                ->get();
+        }
+
+        $data['single_order'] = $single_order;
+        $data['order_invoice'] = $order_invoice ?? [];
+        $data['sub_title'] = 'invoice';
+
         return view('frontend.pages.invoice_new')->with($data);
     }
 

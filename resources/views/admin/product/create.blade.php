@@ -183,6 +183,11 @@
                 showToast('Select A Category', 'error');
                 return; 
             }
+
+            if (sub_category_id == '') {
+                showToast('Select A SubCategory', 'error');
+                return; 
+            }
            
             // if (description == '') {
             //     showToast('Enter Some Product Description', 'error');

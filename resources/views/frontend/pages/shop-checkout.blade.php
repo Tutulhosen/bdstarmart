@@ -169,7 +169,7 @@
             $('.size-selector').change(function() {
                 var id = $(this).data('id'); 
                 var selectedSize = $(this).val(); 
-               
+            
                 $.ajax({
                     url: "{{ route('cart.updateSize') }}", 
                     type: "POST",
@@ -180,14 +180,36 @@
                     },
                     success: function(response) {
                         if (response.success) {
-                            alert('Size updated successfully!');
-                            
+                            // Toastr success notification
+                            toastr.success('Size updated successfully!', 'Success', {
+                                closeButton: true, // Adds the close (X) button
+                                progressBar: true, // Shows the progress bar
+                                positionClass: "toast-top-right", // Sets the position at the top right
+                                timeOut: 3000, // Auto-closes after 3 seconds
+                                extendedTimeOut: 1000
+                            });
                         } else {
-                            alert('Failed to update size.');
+                            // Toastr error notification
+                            toastr.error('Failed to update size.', 'Error', {
+                                closeButton: true,
+                                progressBar: true,
+                                positionClass: "toast-top-right",
+                                timeOut: 3000
+                            });
                         }
+                    },
+                    error: function() {
+                        // Toastr error notification in case of a server error
+                        toastr.error('Something went wrong. Please try again.', 'Error', {
+                            closeButton: true,
+                            progressBar: true,
+                            positionClass: "toast-top-right",
+                            timeOut: 3000
+                        });
                     }
                 });
             });
+
 
             
             // Remove item function

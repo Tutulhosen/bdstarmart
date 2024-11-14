@@ -14,13 +14,15 @@ class FrontendController extends Controller
     //login page
     public function login_page(){
         session(['url.intended' => url()->previous()]);
-        $data['category'] = DB::table('category')->where('status', 1)->get();
+        $data['categories'] = DB::table('category')->where('status', 1)->get();
+        $data['subcategories'] = DB::table('subcategory')->where('status', 1)->get();
         $data['sub_title']='Log In';
         return view('frontend.login')->with($data);
     }
     //register page
     public function register_page(){
-        $data['category'] = DB::table('category')->where('status', 1)->get();
+        $data['categories'] = DB::table('category')->where('status', 1)->get();
+        $data['subcategories'] = DB::table('subcategory')->where('status', 1)->get();
         $data['sub_title']='register';
         return view('frontend.register')->with($data);
     }
@@ -152,11 +154,40 @@ class FrontendController extends Controller
         
     }
 
+    //subcategory page view
+    public function sub_category_page($cat_id, $sub_cat_id){
+       
+        $all_products = DB::table('products')->where('category_id', $cat_id)->where('sub_category', $sub_cat_id)->where('status', 1)->latest()->paginate(28);
+        // dd($all_products);
+        $product_arr = [];
+            foreach ($all_products as $value) {
+                $product = [];
+                $product['id'] = $value->id;
+                $product['title'] = $value->title;
+                $product['price'] = $value->price;
+                $product['discount'] = $value->discount;
+                $product['discount_price'] = $value->discount ? $value->price - $value->discount : $value->price;
+                $product['thumbnail'] = $value->thumbnail;
+
+                array_push($product_arr, $product);
+            }
+            // dd($product_arr);
+            $data['products'] = $product_arr;
+            $data['pagination'] = $all_products; 
+            $data['categories'] = DB::table('category')->where('status', 1)->get();
+            $data['subcategories'] = DB::table('subcategory')->where('status', 1)->get();
+            $data['sub_title']='subcategory';
+
+            return view('frontend.pages.subcategory-page')->with($data);
+        
+        
+    }
+
     
     //shop page 
     public function shop_page(){
-        $all_products = DB::table('products')->where('status', 1)->latest()->paginate(21);
-
+        $all_products = DB::table('products')->where('status', 1)->latest()->paginate(28);
+     
             $product_arr = [];
             foreach ($all_products as $value) {
                 $product = [];
@@ -172,7 +203,8 @@ class FrontendController extends Controller
             // dd($product_arr);
             $data['products'] = $product_arr;
             $data['pagination'] = $all_products; 
-            $data['category'] = DB::table('category')->where('status', 1)->get();
+            $data['categories'] = DB::table('category')->where('status', 1)->get();
+            $data['subcategories'] = DB::table('subcategory')->where('status', 1)->get();
             $data['sub_title']='Shop';
             return view('frontend.pages.shop-page')->with($data);
         

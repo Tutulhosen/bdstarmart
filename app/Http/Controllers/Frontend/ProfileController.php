@@ -37,7 +37,7 @@ class ProfileController extends Controller
     }
 
     //invoice
-    public function invoice($id){
+    public function invoice_old($id){
         $data['category'] = DB::table('category')->where('status', 1)->get();
         $single_order=DB::table('customer_order')->where('id', $id)->first();
         // dd($single_order);
@@ -50,6 +50,16 @@ class ProfileController extends Controller
         
         $data['single_order']=$single_order;
         $data['order_invoice']=$order_invoice;
+        $data['sub_title']='invoice';
+        
+        return view('frontend.pages.invoice')->with($data);
+    }
+
+    //invoice
+    public function invoice(){
+        $data['category'] = DB::table('category')->where('status', 1)->get();
+        
+        
         $data['sub_title']='invoice';
         
         return view('frontend.pages.invoice')->with($data);

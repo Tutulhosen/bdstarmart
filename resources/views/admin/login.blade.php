@@ -1,3 +1,7 @@
+<?php
+    $logo= DB::table('logo')->where('status', 1)->first();
+    $admin= DB::table('users')->where('role_id', 1)->first();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -40,7 +44,7 @@
     <div class="card p-4" style="max-width: 400px; width: 100%;">
         <div class="card-header text-center">
             <!-- Logo Image -->
-            <img src="{{asset('green.png')}}" alt="Logo">
+           <img src="{{asset('images/logo/' . $logo->image)}}" alt="" style="width: 80px; ">
         </div>
         <div class="card-body">
             <h4 class="card-title mb-4 text-center">Login</h4>

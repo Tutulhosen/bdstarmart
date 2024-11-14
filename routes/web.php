@@ -74,6 +74,7 @@ Route::post('/customer-registration', [FrontendController::class, 'customer_regi
 
 Route::get('/', [FrontendController::class, 'home'])->name('home');
 Route::get('/categoty-page/{id}', [FrontendController::class, 'category_page'])->name('frontend.category.page');
+Route::get('/subcategoty-page/{cat_id}/{sub_cat_id}', [FrontendController::class, 'sub_category_page'])->name('frontend.sub.category.page');
 Route::get('/single-product/{id}', [FrontendController::class, 'single_product'])->name('frontend.single.product.page');
 Route::get('/shopping-cart', [FrontendController::class, 'shop_checkout'])->name('shop.checkout');
 Route::post('/checkout', [FrontendController::class, 'checkout'])->name('checkout');

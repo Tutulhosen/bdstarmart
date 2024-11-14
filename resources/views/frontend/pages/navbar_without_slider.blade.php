@@ -18,14 +18,14 @@
                 <div class="navbar-nav w-100 overflow-hidden" style="height: 410px">
                     @foreach($categories as $category)
                         <div class="nav-item dropdown">
-                            <a href="#" class="nav-link" data-toggle="dropdown">{{ $category->name }} <i class="fa fa-angle-down float-right mt-1"></i></a>
+                            <a href="{{route('frontend.category.page', $category->id)}}" class="nav-link" data-toggle="dropdown">{{ $category->name }} <i class="fa fa-angle-down float-right mt-1"></i></a>
                             @php
                                 $catSubcategories = $subcategories->where('category_id', $category->id);
                             @endphp
                             @if($catSubcategories->isNotEmpty())
                                 <div class="dropdown-menu position-absolute bg-secondary border-0 rounded-0 w-100 m-0">
                                     @foreach($catSubcategories as $subcategory)
-                                        <a href="#" class="dropdown-item">{{ $subcategory->name }}</a>
+                                        <a href="{{ route('frontend.sub.category.page', ['cat_id' => $category->id, 'sub_cat_id' => $subcategory->id]) }}" class="dropdown-item">{{ $subcategory->name }}</a>
                                     @endforeach
                                 </div>
                             @endif
@@ -42,13 +42,13 @@
                 </button>
                 <div class="collapse navbar-collapse justify-content-between" id="navbarCollapse">
                     <div class="navbar-nav mr-auto py-0">
-                        <a href="index.html" class="nav-item nav-link">Home</a>
-                        <a href="shop.html" class="nav-item nav-link">Shop</a>
+                        <a href="{{route('home')}}" class="nav-item nav-link">Home</a>
+                        <a href="{{route('shop.page')}}" class="nav-item nav-link">Shop</a>
                         
                     </div>
                     <div class="navbar-nav ml-auto py-0">
-                        <a href="" class="nav-item nav-link">Login</a>
-                        <a href="" class="nav-item nav-link">Register</a>
+                        {{-- <a href="{{route('frontend.login')}}" class="nav-item nav-link">Login</a>
+                        <a href="{{route('frontend.register')}}" class="nav-item nav-link">Register</a> --}}
                     </div>
                 </div>
             </nav>

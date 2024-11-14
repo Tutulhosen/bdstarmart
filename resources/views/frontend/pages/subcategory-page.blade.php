@@ -1,7 +1,9 @@
 @extends('frontend.layout.app')
 
 @section('main-content')
+
 @include('frontend.pages.navbar_without_slider')
+@if (!empty($products))
 <div class="container-fluid pt-5">
     <div class="text-center mb-4">
         <h2 class="section-title px-5"><span class="px-2">Just Arrived</span></h2>
@@ -56,4 +58,12 @@
        
 
 </div>
+@else
+    <div class="row">
+        <div class="col-12 text-center pt-5">
+            <h2 class="text-center">কোনো পণ্য পাওয়া যায়নি।</h2> 
+        </div>
+    </div>
+@endif
+
 @endsection

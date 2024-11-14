@@ -143,8 +143,11 @@
                                     </div>
                                 </div>
                                 <div class="card-footer d-flex justify-content-between bg-light border">
-                                    <a href="{{ route('frontend.single.product.page', $product['id']) }}" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View Detail</a>
-                                    <a href="" class="btn btn-sm text-dark p-0"><i class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart</a>
+                                    <a href="{{route('frontend.single.product.page', $product['id'])}}" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View Detail</a>
+                        
+                                    <button class="btn btn-sm text-dark p-0 order_now_btn_direct"   data-price="{{ $product['price']-$product['discount'] }}" data-id="{{ $product['id'] }}">
+                                        <i class="fa fa-receipt mr-1 text-success"></i> Order Now
+                                    </button>
                                 </div>
                             </div>
                         @endforeach
@@ -193,10 +196,10 @@
             
             if (!selectedSize) {
                 var size = null;
-            }else{
-                var size =selectedSize;
+            } else {
+                var size = selectedSize;
             }
-           
+
             $.ajax({
                 url: '{{ route("cart.add") }}',
                 method: 'POST',
@@ -209,37 +212,57 @@
                 },
                 success: function(response) {
                     if (response.success) {
-                        alert('Product added to cart successfully!');
+                        // Toastr success notification
+                        toastr.success('Product added to cart successfully!', 'Success', {
+                            closeButton: true,
+                            progressBar: true,
+                            positionClass: "toast-top-right",
+                            timeOut: 3000
+                        });
 
-                       
+                        // Update cart count
                         $('#cart_count').text(response.cart_count);
-
-                       
                     } else if (response.already_in_cart) {
-                        alert('Product is already in the cart.');
+                        toastr.warning('Product is already in the cart.', 'Warning', {
+                            closeButton: true,
+                            progressBar: true,
+                            positionClass: "toast-top-right",
+                            timeOut: 3000
+                        });
                     } else {
-                        alert('Failed to add product to cart: ' + response.message);
+                        toastr.error('Failed to add product to cart: ' + response.message, 'Error', {
+                            closeButton: true,
+                            progressBar: true,
+                            positionClass: "toast-top-right",
+                            timeOut: 3000
+                        });
                     }
                 },
                 error: function(xhr) {
-                    alert('Failed to add product to cart.');
+                    toastr.error('Failed to add product to cart.', 'Error', {
+                        closeButton: true,
+                        progressBar: true,
+                        positionClass: "toast-top-right",
+                        timeOut: 3000
+                    });
                 }
             });
         });
 
+        // Handle Order Now action
         $('#order_now_btn').click(function(e) {
             e.preventDefault();
             var productId = $(this).data('id');
             var qty = $('#qty').val();
             var total_value_hidden = $('#total_value_hidden').val();
             var selectedSize = $('input[name="size"]:checked').val();
-           
+            
             if (!selectedSize) {
                 var size = null;
-            }else{
-                var size =selectedSize;
+            } else {
+                var size = selectedSize;
             }
-           
+
             $.ajax({
                 url: '{{ route("cart.add") }}',
                 method: 'POST',
@@ -252,24 +275,33 @@
                 },
                 success: function(response) {
                     if (response.success) {
-                            
+                        // Update cart count and redirect to checkout
                         $('#cart_count').text(response.cart_count);
                         window.location.href = "{{ route('shop.checkout') }}";
-
-                    
                     } else if (response.already_in_cart) {
+                        // Redirect to checkout if already in the cart
                         window.location.href = "{{ route('shop.checkout') }}";
                     } else {
-                        alert('Something went wrong.');
+                        toastr.error('Something went wrong.', 'Error', {
+                            closeButton: true,
+                            progressBar: true,
+                            positionClass: "toast-top-right",
+                            timeOut: 3000
+                        });
                     }
                 },
                 error: function(xhr) {
-                    alert('Failed to add product to cart.');
+                    toastr.error('Failed to add product to cart.', 'Error', {
+                        closeButton: true,
+                        progressBar: true,
+                        positionClass: "toast-top-right",
+                        timeOut: 3000
+                    });
                 }
             });
         });
 
-        
     });
 </script>
+
 @endsection

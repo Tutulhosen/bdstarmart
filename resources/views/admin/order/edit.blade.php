@@ -132,20 +132,23 @@
                             </tr>
                         </thead>
                         <tbody id="cart-body">
-                            @foreach ($order_invoice as $product)
+                            @foreach ($order_invoice_new as $product)
+                            <?php 
+                                $thumbnail=DB::table('products')->where('id', $product->product_id)->first();
+                            ?>
                                 <tr>
                                     <td>
                                         <button type="button" class="btn btn-danger btn-sm remove-item" data-id="{{ $product->product_id }}">Remove</button>
                                     </td>
                                     <td>
-                                        <img src="/images/galleries/{{ $product->thumbnail }}" width="35" alt="{{ $product->title }}">
+                                        <img src="/images/galleries/{{ $thumbnail->thumbnail }}" width="35" alt="{{ $product->title }}">
                                         {{ $product->title }}
                                     </td>
-                                    <td>BDT {{ $product->offer_cost - $product->discount }}</td>
+                                    <td>BDT {{ $product->discount }}</td>
                                     <td>
-                                        <input type="number" name="qty" value="{{ $product->products_qty }}" min="1" class="form-control qty-input" style="width: 60px;">
+                                        <input type="number" name="qty" value="{{ $product->qty }}" min="1" class="form-control qty-input" style="width: 60px;">
                                     </td>
-                                    <td class="subtotal">BDT {{ ($product->offer_cost - $product->discount) * $product->products_qty }}</td>
+                                    <td class="subtotal">BDT {{ ($product->discount) * $product->qty }}</td>
                                 </tr>
                             @endforeach
                         </tbody>

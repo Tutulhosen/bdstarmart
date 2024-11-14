@@ -125,12 +125,14 @@ Route::middleware('admin')->group(function (){
         Route::get('/edit/{order_code}', [OrderController::class, 'edit'])->name('edit');
         Route::post('/update/by/{order_code}', [OrderController::class, 'update_by'])->name('update.by');
         Route::get('/product/search',[OrderController::class, 'searchProduct'])->name('product.search');
+        Route::get('/size-name', [OrderController::class, 'getSizeName'])->name('size.name');
         Route::post('/store',[OrderController::class, 'store'])->name('store');
         Route::get('/update/{id}',[OrderController::class, 'userupdatePage'])->name('update.page');
         Route::post('/update',[OrderController::class, 'OrderUpdate'])->name('update');
         Route::get('/delete/{id}',[OrderController::class, 'userDelete'])->name('delete');
         Route::get('/status/update',[OrderController::class, 'orderStatusUpdate'])->name('status.update');
         Route::get('/invoice/{id}', [OrderController::class, 'invoice'])->name('invoice');
+        Route::post('/invoice/thankyou', [OrderController::class, 'invoiceThankyou'])->name('invoice.thankyou');
     });
 
     // top header route

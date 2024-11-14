@@ -2,11 +2,7 @@
     $meta=DB::table('meta')->where('status', 1)->first();
     $user=DB::table('users')->where('role_id', 1)->first();
 ?>
-<style>
-    .order_now_btn:hover {
-        color: green !important;
-    }
-</style>
+
 
 
 <!DOCTYPE html>
@@ -34,7 +30,11 @@
 
     <!-- Customized Bootstrap Stylesheet -->
     <link href="{{asset('bdstarmart/css//style.css')}}" rel="stylesheet">
-    
+    <style>
+        .order_now_btn:hover {
+            color: green !important;
+        }
+    </style>
 </head>
 
 <body style="background-color: rgb(242 248 251)">
@@ -60,6 +60,7 @@
 
     <!-- JavaScript Libraries -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
     <script src="{{asset('bdstarmart/lib/easing/easing.min.js')}}"></script>
     <script src="{{asset('bdstarmart/lib/owlcarousel/owl.carousel.min.js')}}"></script>
@@ -67,7 +68,7 @@
     <!-- Contact Javascript File -->
     <script src="{{asset('bdstarmart/mail/jqBootstrapValidation.min.js')}}"></script>
     <script src="{{asset('bdstarmart/mail/contact.js')}}"></script>
-
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet"/>
     <!-- Template Javascript -->
     <script src="{{asset('bdstarmart/js/main.js')}}"></script>
     <script>
