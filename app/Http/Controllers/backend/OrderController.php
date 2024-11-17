@@ -78,8 +78,7 @@ class OrderController extends Controller
         $total= array_sum($new_subtotals);
        
         $delivery_charge = (int)$request->input('delivery_charge_hidden');
-        $discount = (int)$request->input('discount_hidden');
-        $total_sum=($total+$delivery_charge)-$discount;
+
         if ($delivery_charge) {
             $d_charge=$delivery_charge;
         } else {
@@ -97,12 +96,12 @@ class OrderController extends Controller
 
         if ($lastOrder) {
             $lastOrderCode = $lastOrder->order_code;
-            $lastOrderNumber = (int)str_replace('GM-', '', $lastOrderCode);
+            $lastOrderNumber = (int)str_replace('BSM-', '', $lastOrderCode);
             $newOrderNumber = $lastOrderNumber + 1;
         }
 
         // Format the new order code 
-        $newOrderCode = 'GM-' . str_pad($newOrderNumber, 2, '0', STR_PAD_LEFT);
+        $newOrderCode = 'BSM-' . str_pad($newOrderNumber, 2, '0', STR_PAD_LEFT);
 
         $isInserted = false;
 
@@ -129,7 +128,6 @@ class OrderController extends Controller
             foreach ($new_product_ids as $index => $product_id) {
 
                 $quantity = $new_quantities[$index];
-                $subtotal = $new_subtotals[$index];
                 $size_s = $new_size[$index];
 
                 $productes=DB::table('products')->where('id', $product_id)->first();
@@ -157,9 +155,10 @@ class OrderController extends Controller
 
     
 
-    public function edit($order_code)
+    public function edit($order_id)
     {
-        $single_order=DB::table('customer_order')->where('order_code', $order_code)->first();
+        $single_order=DB::table('customer_order')->where('id', $order_id)->first();
+       
         
         $order_invoice=DB::table('products')
         ->join('customer_order', 'customer_order.product_id', 'products.id')
@@ -167,6 +166,7 @@ class OrderController extends Controller
         ->select('products.title as title','customer_order.products_qty as products_qty' ,'customer_order.product_id as product_id' ,'products.thumbnail as thumbnail', 'products.price as offer_cost', 'products.discount as discount', 'customer_order.delivery_charge as delivery_charge')
         ->get();
         $order_invoice_new=DB::table('order_product')->where('order_id', $single_order->id)->get();
+        
         // dd($order_invoice_new);
         $data['single_order']=$single_order;
         $data['order_invoice']=$order_invoice;
@@ -179,16 +179,10 @@ class OrderController extends Controller
 
    
 
-    public function update_by(Request $request, $order_code)
+    public function update_by(Request $request, $order_id)
     {
-        // Retrieve and parse the input data
-        $existingOrder = DB::table('customer_order')->where('order_code', $order_code)->get();
-        foreach ($existingOrder as  $value) {
-            DB::table('customer_order')->where('order_code', $order_code)->delete();
-        }
         
         $product_ids = $request->input('product_ids');
-        // dd($product_ids);
         foreach ($product_ids as $key => $value) {
             $new_product_ids = explode(',', $value);
         }
@@ -198,68 +192,57 @@ class OrderController extends Controller
             $new_quantities = explode(',', $value);
         }
 
+        $size = $request->input('size');
+        // dd($size);
+        foreach ($size as $key => $value) {
+            $new_size = explode(',', $value);
+        }
+
         $subtotals = $request->input('subtotals');
         foreach ($subtotals as $key => $value) {
             $new_subtotals = explode(',', $value);
         }
-        $total= array_sum($new_subtotals);
 
-        $delivery_charge = (int)$request->input('delivery_charge_hidden');
-        $discount = (int)$request->input('discount_hidden');
-        $total_sum=($total+$delivery_charge)-$discount;
+        try {
+            DB::beginTransaction();
 
-        
-        // dd($delivery_charge);
-        // Retrieve the last order_code
-        $lastOrder = DB::table('customer_order')
-            ->orderBy('id', 'desc')
-            ->whereNotNull('order_code')
-            ->first();
-
-        $newOrderNumber = 1;
-
-        if ($lastOrder) {
-            $lastOrderCode = $lastOrder->order_code;
-            $lastOrderNumber = (int)str_replace('GM-', '', $lastOrderCode);
-            $newOrderNumber = $lastOrderNumber + 1;
-        }
-
-        // Format the new order code 
-        $newOrderCode = 'GM-' . str_pad($newOrderNumber, 2, '0', STR_PAD_LEFT);
-
-        $isInserted = false;
-
-        // Loop through each product and insert the order
-        foreach ($new_product_ids as $index => $product_id) {
-            // dd($product_id);
-            $quantity = $new_quantities[$index];
-            $subtotal = $new_subtotals[$index];
-
-            // Create a new order in the database
-            $id = DB::table('customer_order')->insertGetId([
-                'customer_id' => null, 
-                'product_id' => $product_id,
-                'products_qty' => $quantity,
-                'total_price' => $total_sum,
+            $update=DB::table('customer_order')->where('id', $order_id)->update([
+                'total_price' => $request->input('grand_total_hidden'),
                 'full_name' => $request->input('full_name'),
                 'delivery_address' => $request->input('delivery_address'),
                 'phone_number' => $request->input('phone_number'),
-                'order_code' => $order_code,
-                'delivery_charge' => $delivery_charge,
-                'discount' => $discount,
+                'payment_method' => $request->input('shipping_method'),
+                'delivery_charge' => $request->input('delivery_charge_hidden'),
+                'discount' => $request->input('discount_hidden'),
             ]);
-            
-
-            if ($id) {
-                $isInserted = true;
+    
+            DB::table('order_product')->where('order_id', $order_id)->delete();
+            foreach ($new_product_ids as $index => $product_id) {
+    
+                $quantity = $new_quantities[$index];
+                $size_s = $new_size[$index];
+                // dd($size_s);
+                $productes=DB::table('products')->where('id', $product_id)->first();
+                $total_prices=($productes->price-$productes->discount)*$quantity;
+                DB::table('order_product')->insert([
+                    'order_id' => $order_id,
+                    'product_id' => $product_id,
+                    'price' => $productes->price,
+                    'discount' => $productes->discount,
+                    'qty' => $quantity,
+                    'total_price' => $total_prices,
+                    'size' => $size_s,
+                    'title' => $productes->title,
+                ]);
             }
-        }
-
-        if ($isInserted) {
+            DB::commit();
             return redirect()->route('admin.order.list')->with('success', 'Order Update successfully.');
-        } else {
+        } catch (\Throwable $th) {
             return redirect()->back()->with('error', 'Failed to update the order.');
         }
+        
+
+        
     }
 
 
@@ -345,37 +328,34 @@ class OrderController extends Controller
     public function orderStatusUpdate(Request $request){
         $id = $request->input('id');
         $type = $request->input('type');
-        $all_order=DB::table('customer_order')->where('order_code', $id)->get();
-        
-        foreach ($all_order as $key => $value) {
-            if ($type=='accept') {
-                DB::table('customer_order')->where('id', $value->id)->update([
-                    'order_status' => 2
-                ]);
-            }
-            if ($type=='cancel') {
-                DB::table('customer_order')->where('id', $value->id)->update([
-                    'order_status' => 1
-                ]);
-            }
-            if ($type=='on_delivery') {
-                DB::table('customer_order')->where('id', $value->id)->update([
-                    'order_status' => 3
-                ]);
-            }
-            if ($type=='delivery_done') {
-                DB::table('customer_order')->where('id', $value->id)->update([
-                    'order_status' => 4,
-                    'delivery_date' => Carbon::now(),
-                ]);
-            }
-            if ($type=='return_back') {
-                DB::table('customer_order')->where('id', $value->id)->update([
-                    'order_status' => 5
-                ]);
-            }
-    
+        $all_order=DB::table('customer_order')->where('id', $id)->first();
+        if ($type=='accept') {
+            DB::table('customer_order')->where('id', $all_order->id)->update([
+                'order_status' => 2
+            ]);
         }
+        if ($type=='cancel') {
+            DB::table('customer_order')->where('id', $all_order->id)->update([
+                'order_status' => 1
+            ]);
+        }
+        if ($type=='on_delivery') {
+            DB::table('customer_order')->where('id', $all_order->id)->update([
+                'order_status' => 3
+            ]);
+        }
+        if ($type=='delivery_done') {
+            DB::table('customer_order')->where('id', $all_order->id)->update([
+                'order_status' => 4,
+                'delivery_date' => Carbon::now(),
+            ]);
+        }
+        if ($type=='return_back') {
+            DB::table('customer_order')->where('id', $all_order->id)->update([
+                'order_status' => 5
+            ]);
+        }
+        
      
        
         return response([
@@ -405,11 +385,10 @@ class OrderController extends Controller
 
     public function invoiceThankyou(Request $request)
     {
-        $id = $request->input('order_id');  // Get the dynamic order ID from the request
-
+        $id = $request->input('order_id');
+      
         $data['category'] = DB::table('category')->where('status', 1)->get();
         $single_order = DB::table('customer_order')->where('id', $id)->first();
-
         if ($single_order) {
             $order_invoice = DB::table('products')
                 ->join('customer_order', 'customer_order.product_id', 'products.id')
@@ -417,11 +396,12 @@ class OrderController extends Controller
                 ->select('products.title as title', 'customer_order.products_qty', 'customer_order.additional_information as delivery_charge', 'products.price as offer_cost', 'products.discount as discount')
                 ->get();
         }
-
+        $order_invoice_new=DB::table('order_product')->where('order_id', $single_order->id)->get();
         $data['single_order'] = $single_order;
         $data['order_invoice'] = $order_invoice ?? [];
+        $data['order_invoice_new'] = $order_invoice_new ?? [];
         $data['sub_title'] = 'invoice';
-
+        // dd($order_invoice_new);
         return view('frontend.pages.invoice_new')->with($data);
     }
 

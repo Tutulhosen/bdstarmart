@@ -29,7 +29,7 @@
     <link href="{{asset('bdstarmart/lib/owlcarousel/assets/owl.carousel.min.css')}}" rel="stylesheet">
 
     <!-- Customized Bootstrap Stylesheet -->
-    <link href="{{asset('bdstarmart/css//style.css')}}" rel="stylesheet">
+    <link href="{{asset('bdstarmart/css/style.css')}}" rel="stylesheet">
     <style>
         .order_now_btn:hover {
             color: green !important;
@@ -53,7 +53,7 @@
     @include('frontend.layout.footer')
     <!-- Footer End -->
 
-
+    
     <!-- Back to Top -->
     <a href="#" class="btn btn-primary back-to-top"><i class="fa fa-angle-double-up"></i></a>
 
@@ -129,6 +129,22 @@
                     }
                 });
             });
+        });
+
+        $('#searchForm').on('submit', function(e) {
+            e.preventDefault(); // Prevent default form submission
+            
+            var query = $('#searchQuery').val().trim();
+            var category = ' ';
+            // alert(query);
+            // Check if the query is not empty or category is selected
+            if (query.length > 0 || category) {
+                // Redirect to search results page with query and category as parameters
+                window.location.href = '{{ route("search.results") }}?query=' + encodeURIComponent(query) + '&category=' + category;
+            } else {
+                // If no input is provided, stay on the current page
+                alert('Please enter a search query or select a category.');
+            }
         });
 
     </script>

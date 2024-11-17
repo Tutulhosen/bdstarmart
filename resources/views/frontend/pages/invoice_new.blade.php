@@ -250,34 +250,29 @@
                                     <td class="text-left">SL.</td>
                                     <td class="text-left">Title</td>
                                     <td class="text-right">Qty</td>
-                                    <td class="text-left">&nbsp;&nbsp;Unit</td>
+                                    <td class="text-left">&nbsp;&nbsp;Size</td>
                                     <td class="text-right" style="width:100px">Price (BDT)</td>
                                     <td class="text-right" style="width:100px">Vat (BDT)</td>
                                     <td class="text-right" style="width:100px">Total (BDT)</td>
                                 </tr>
                         
                                 @php $total = 0; $discount_price=0;@endphp
-                                @foreach($order_invoice as $key => $item)
-                                @php
-                                    // Calculate total for each item
-                                    $discount_price=$item->offer_cost-$item->discount;
-                                    $itemTotal = $item->products_qty * $discount_price;
-                                    $total += $itemTotal;
-                                @endphp
+                                @foreach($order_invoice_new as $key => $item)
+                                
                                 <tr class="item">
                                     <td class="text-left">{{ $key + 1 }}</td>
                                     <td class="text-left">{{ $item->title }}</td>
-                                    <td class="text-right">{{ $item->products_qty }}</td>
-                                    <td class="text-left">&nbsp;&nbsp;pc</td>
-                                    <td class="text-right">{{ number_format($discount_price, 2) }}</td>
+                                    <td class="text-right">{{ $item->qty }}</td>
+                                    <td class="text-left">&nbsp;&nbsp;{{ $item->size ? size_name($item->size) : 'N/A' }}</td>
+                                    <td class="text-right">{{ $item->price- $item->discount }}</td>
                                     <td class="text-right">0.00</td>
-                                    <td class="text-right">{{ number_format($itemTotal, 2) }}</td>
+                                    <td class="text-right">{{ $item->total_price }}</td>
                                 </tr>
                                 @endforeach
                         
                                 <tr class="heading">
                                     <td colspan="2" class="text-right">Subtotal:</td>
-                                    <td class="text-right">{{ $order_invoice->sum('products_qty') }}</td>
+                                    <td class="text-right">{{ $order_invoice->sum('qty') }}</td>
                                     <td></td>
                                     <td></td>
                                     <td></td>

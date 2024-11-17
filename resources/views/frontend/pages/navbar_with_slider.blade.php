@@ -18,7 +18,7 @@
                 <div class="navbar-nav w-100 overflow-hidden" style="height: 410px">
                     @foreach($categories as $category)
                         <div class="nav-item dropdown">
-                            <a href="{{route('frontend.category.page', $category->id)}}" class="nav-link" data-toggle="dropdown">{{ $category->name }} dsfs<i class="fa fa-angle-down float-right mt-1"></i></a>
+                            <a href="{{route('frontend.category.page', $category->id)}}" class="nav-link" data-toggle="dropdown">{{ $category->name }}<i class="fa fa-angle-down float-right mt-1"></i></a>
                             @php
                                 $catSubcategories = $subcategories->where('category_id', $category->id);
                             @endphp

@@ -9619,3 +9619,199 @@ a.text-dark:hover, a.text-dark:focus {
     transform: translateY(-15px);
   }
 }
+
+.footer-section {
+    background-color: #222;
+    color: #fff;
+    padding: 40px 0;
+    font-size: 16px;
+}
+
+.footer-section h4 {
+    font-size: 18px;
+    margin-bottom: 20px;
+    color: #f1c40f;
+}
+
+.footer-menu ul,
+.social-links ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-menu ul li,
+.social-links ul li {
+    margin-bottom: 10px;
+}
+
+.footer-menu ul li a,
+.social-links ul li a {
+    color: #fff;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer-menu ul li a:hover,
+.social-links ul li a:hover {
+    color: #f1c40f;
+}
+
+.social-links ul li {
+    display: inline-block;
+    margin-right: 15px;
+}
+
+.social-links ul li a {
+    font-size: 20px;
+}
+
+.social-links ul li a:hover {
+    color: #f1c40f;
+}
+
+.copyright-text {
+    margin-top: 20px;
+    font-size: 14px;
+    color: #ccc;
+}
+
+.copyright-text p {
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .footer-section {
+        padding: 20px 0;
+    }
+
+    .footer-menu ul,
+    .social-links ul {
+        text-align: center;
+    }
+
+    .social-links ul li {
+        display: inline-block;
+        margin-right: 10px;
+    }
+
+    .footer-menu ul li,
+    .social-links ul li {
+        margin-bottom: 5px;
+    }
+
+    .copyright-text {
+        text-align: center;
+        font-size: 12px;
+    }
+}
+.footer {
+  background-color: #222;
+  color: #fff;
+  padding: 40px 0;
+}
+
+.footer-menu ul {
+  padding: 0;
+  margin: 0 0 20px 0;
+  list-style: none;
+}
+
+.footer-menu ul li {
+  display: inline;
+  margin: 0 15px;
+}
+
+.footer-menu ul li a {
+  color: #fff;
+  text-decoration: none;
+  font-size: 16px;
+  transition: color 0.3s ease;
+}
+
+.footer-menu ul li a:hover {
+  color: #f1c40f;
+}
+
+.social_links ul {
+  padding: 0;
+  margin: 0 0 20px 0;
+  list-style: none;
+}
+
+.social_links ul li {
+  display: inline-block;
+  margin: 0 10px;
+}
+
+.social_links ul li a {
+  color: #fff;
+  font-size: 20px;
+  transition: color 0.3s ease;
+}
+
+.social_links ul li a:hover {
+  color: #f1c40f;
+}
+
+.copyright_text p {
+  color: #ccc;
+  font-size: 14px;
+  margin: 0;
+}
+
+.text-center {
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .footer-menu ul li,
+  .social_links ul li {
+      margin-bottom: 10px;
+  }
+}
+.whatsapp-button {
+  position: fixed;
+  bottom: 20px; 
+  left: 20px;   
+  z-index: 9999;
+  -webkit-appearance: none;
+  background-color: white;
+  border-radius: 50%;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
+  padding: 0px;
+  transition: transform 0.3s ease-in-out;
+}
+
+.whatsapp-button:hover {
+  transform: scale(1.1); 
+}
+
+.whatsapp-button i {
+  font-size: 40px;
+  color: green;
+}
+
+.logo {
+  text-align: center;
+  margin: auto;
+}
+
+.logo-img {
+  width: 80px; 
+}
+
+/* For mobile view */
+@media (max-width: 768px) {
+  .logo {
+      width: 100%;
+  }
+}
+
+/* For desktop view */
+@media (min-width: 769px) {
+  .logo {
+      width: 23%;
+  }
+}
+

@@ -88,7 +88,7 @@
                 <div class="headline">
                     <h3 class="text-center">Edit Order</h3>
                 </div><br>
-                <form action="{{ route('admin.order.update.by', $single_order->order_code) }}" method="POST">
+                <form action="{{ route('admin.order.update.by', $single_order->id) }}" method="POST">
                     @csrf
                     @method('POST')
                     <div class="form-group">
@@ -128,49 +128,76 @@
                                 <th>Product Name & Image</th>
                                 <th>Price</th>
                                 <th>Qty</th>
+                                <th>size</th>
                                 <th>Sub Total</th>
                             </tr>
                         </thead>
                         <tbody id="cart-body">
                             @foreach ($order_invoice_new as $product)
                             <?php 
-                                $thumbnail=DB::table('products')->where('id', $product->product_id)->first();
+                                $single_product=DB::table('products')->where('id', $product->product_id)->first();
                             ?>
                                 <tr>
                                     <td>
                                         <button type="button" class="btn btn-danger btn-sm remove-item" data-id="{{ $product->product_id }}">Remove</button>
                                     </td>
                                     <td>
-                                        <img src="/images/galleries/{{ $thumbnail->thumbnail }}" width="35" alt="{{ $product->title }}">
+                                        <img src="/images/galleries/{{ $single_product->thumbnail }}" width="35" alt="{{ $product->title }}">
                                         {{ $product->title }}
                                     </td>
-                                    <td>BDT {{ $product->discount }}</td>
+                                    <td>BDT {{ $product->price-$product->discount }}</td>
+                                    
                                     <td>
                                         <input type="number" name="qty" value="{{ $product->qty }}" min="1" class="form-control qty-input" style="width: 60px;">
                                     </td>
-                                    <td class="subtotal">BDT {{ ($product->discount) * $product->qty }}</td>
+                                    <td>
+                                        @if (!empty($single_product->size))
+                                            <select name="size" class="form-control size-dropdown size">
+                                                @php
+                                                    $sizes = json_decode($single_product->size); 
+                                                @endphp
+                                                <option value="">--select--</option>
+                                                @foreach (json_decode($sizes) as $size)
+                                                    <?php 
+                                                        if ($size== $product->size) {
+                                                            echo $selected='selected';
+                                                        } else {
+                                                            echo $selected=' ';
+                                                        }
+                                                        
+                                                    ?>
+                                                    <option value="{{$size}}" {{$selected}}>{{size_name($size)}}</option>
+                                                @endforeach
+                                            </select>
+                                        
+                                        @else
+                                            
+                                        @endif
+                                        
+                                    </td>
+                                    <td class="subtotal">BDT {{ $product->total_price }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
                         <tfoot>
                             <tr>
-                                <td colspan="4" class="text-right">Net Total:</td>
+                                <td colspan="5" class="text-right">Net Total:</td>
                                 <td id="net-total">BDT 0</td>
                             </tr>
                             <tr>
-                                <td colspan="4" class="text-right">Delivery Charge:</td>
+                                <td colspan="5" class="text-right">Delivery Charge:</td>
                                 <td>
                                     <input type="number" id="delivery-charge" value="{{ $single_order->delivery_charge }}" min="0" class="form-control" style="width: 100px;">
                                 </td>
                             </tr>
                             <tr>
-                                <td colspan="4" class="text-right">Discount:</td>
+                                <td colspan="5" class="text-right">Discount:</td>
                                 <td>
                                     <input type="number" id="discount" value="{{ $single_order->discount }}" min="0" class="form-control" style="width: 100px;">
                                 </td>
                             </tr>
                             <tr>
-                                <td colspan="4" class="text-right">Total Sum:</td>
+                                <td colspan="5" class="text-right">Total Sum:</td>
                                 <td id="grand-total">BDT 0</td>
                             </tr>
                         </tfoot>
@@ -180,8 +207,10 @@
                     <input type="hidden" name="product_ids[]" id="product_ids">
                     <input type="hidden" name="quantities[]" id="quantities">
                     <input type="hidden" name="subtotals[]" id="subtotals">
+                    <input type="hidden" name="size[]" id="sizes">
                     <input type="hidden" name="delivery_charge_hidden" id="delivery_charge_hidden">
                     <input type="hidden" name="discount_hidden" id="discount_hidden">
+                    <input type="hidden" name="grand_total_hidden" id="grand_total_hidden">
 
                     <div style="margin-top: 20px;">
                         <button class="save-btn">Update</button>
@@ -198,7 +227,9 @@
     $(document).ready(function() {
         // Preload totals when page loads
         updateTotals();
-
+        $('form').on('submit', function(e) {
+            updateHiddenFields(); 
+        });
         // Handle product search
         $('#search_product').on('input', function() {
             var query = $(this).val();
@@ -208,13 +239,22 @@
                     method: 'GET',
                     data: { query: query },
                     success: function(response) {
+                       
                         let suggestions = '';
                         if (response.length > 0) {
                             response.forEach(product => {
+                                let sizes = product.size ? product.size : []; 
+                             
+                                
                                 suggestions += `
-                                    <div class="suggestion-item" data-id="${product.id}" data-name="${product.title}" data-price="${product.price-product.discount}" data-thumbnail="${product.thumbnail}">
+                                    <div class="suggestion-item" 
+                                        data-id="${product.id}" 
+                                        data-name="${product.title}" 
+                                        data-price="${product.price - product.discount}" 
+                                        data-thumbnail="${product.thumbnail}"
+                                        data-size='${JSON.stringify(sizes)}' > <!-- Pass sizes as JSON string -->
                                         <img src="/images/galleries/${product.thumbnail}" alt="${product.title}">
-                                        <span>${product.title} - BDT ${product.price-product.discount}</span>
+                                        <span>${product.title} - BDT ${product.price - product.discount}</span>
                                     </div>`;
                             });
                         } else {
@@ -234,7 +274,30 @@
             var productName = $(this).data('name');
             var productPrice = $(this).data('price');
             var productThumbnail = $(this).data('thumbnail');
+            var productSize = $(this).data('size'); // Assuming this is an array of size IDs
 
+            // Initialize the sizeOptions variable
+            var sizeOptions = '';
+
+            // If there are sizes available, fetch their names
+            if (productSize && productSize.length > 0) {
+                productSize.forEach(function(sizeId) {
+                    // Make an AJAX call to fetch the size name using the size ID
+                    $.ajax({
+                        url: "{{ route('admin.order.size.name') }}", // Create this route in your backend
+                        method: 'GET',
+                        data: { id: sizeId },
+                        async: false, // Ensure synchronous to get results before continuing
+                        success: function(response) {
+                            sizeOptions += `<option value="${sizeId}">${response.size_name}</option>`;
+                        }
+                    });
+                });
+            } else {
+                sizeOptions = `<option value="">No size available</option>`;
+            }
+
+            // Append product row to the table with size options
             var row = `
                 <tr>
                     <td>
@@ -248,12 +311,20 @@
                     <td>
                         <input type="number" name="qty" value="1" min="1" class="form-control qty-input" style="width: 60px;">
                     </td>
+                    <td>
+                        <select name="size" class="form-control size-dropdown size">
+                            ${sizeOptions}
+                        </select>
+                    </td>
                     <td class="subtotal">BDT ${productPrice}</td>
-                </tr>`;
-            
+                </tr>
+            `;
+
             $('#cart-body').append(row);
             $('.autocomplete-items').hide();
-            updateTotals();
+            $('#search_product').val(''); // Clear search input
+
+            updateTotals(); // Update totals after adding product
         });
 
         // Handle quantity change
@@ -282,18 +353,20 @@
             var productIds = [];
             var quantities = [];
             var subtotals = [];
+            var size = [];
 
-            // Loop through each cart row and gather data
+            
             $('#cart-body tr').each(function() {
-                var productId = $(this).find('.remove-item').data('id'); // Get the product ID
-                var qty = $(this).find('.qty-input').val(); // Get the quantity
-                var price = parseFloat($(this).find('td:nth-child(3)').text().replace('BDT ', '')); // Get the price
-                var subtotal = qty * price; // Calculate subtotal
-
+                var productId = $(this).find('.remove-item').data('id'); 
+                var qty = $(this).find('.qty-input').val(); 
+                var price = parseFloat($(this).find('td:nth-child(3)').text().replace('BDT ', '')); 
+                var subtotal = qty * price; 
+                var s = $(this).find('.size').val();
                 // Add to the hidden fields arrays
                 productIds.push(productId);
                 quantities.push(qty);
                 subtotals.push(subtotal);
+                size.push(s);
 
                 netTotal += subtotal; // Add to the total
                 $(this).find('.subtotal').text('BDT ' + subtotal); // Update subtotal in the table
@@ -316,6 +389,37 @@
             $('#subtotals').val(subtotals.join(','));
             $('#delivery_charge_hidden').val(deliveryCharge);
             $('#discount_hidden').val(discount);
+            $('#grand_total_hidden').val(grandTotal);
+            $('#sizes').val(size);
+        }
+
+        // Update hidden fields with product IDs and quantities
+        function updateHiddenFields() {
+            var productIds = [];
+            var quantities = [];
+            var subtotals = [];
+            var sizes = [];
+
+            // Loop through each product row
+            $('#cart-body tr').each(function() {
+                var productId = $(this).find('.remove-item').data('id'); 
+                var qty = $(this).find('.qty-input').val(); 
+                var s = $(this).find('.size').val(); 
+                var subtotal = $(this).find('.subtotal').text().replace('BDT', '').trim(); // Get subtotal
+
+                if (productId && qty && subtotal) {
+                    productIds.push(productId);
+                    quantities.push(qty); 
+                    subtotals.push(subtotal); 
+                    sizes.push(s); 
+                }
+            });
+
+            // Join the arrays into comma-separated strings
+            $('#product_ids').val(productIds.join(',')); 
+            $('#quantities').val(quantities.join(',')); 
+            $('#subtotals').val(subtotals.join(',')); 
+            $('#sizes').val(sizes.join(',')); 
         }
 
     });

@@ -1,50 +1,49 @@
 @extends('frontend.layout.app')
 
 @section('main-content')
-<br>
-<section>
-    <div class="container">
-        <div class="row m-0">
+    @include('frontend.pages.navbar_without_slider')
+
+    <div class="container-fluid pt-5">
+        <div class="row px-xl-5 pb-3 h-30">
             @if (count($products) > 0)
-                @foreach($products as $product)
-                    <div class="col-md-2 col-6 main-product">
-                        <div class="main-product-inner-wrapper text-center product-item">
-                            <a href="{{ route('frontend.single.product.page', $product->id) }}">
-                                <img src="{{asset('images/galleries/'.$product->thumbnail)}}" alt="{{ $product->title }}">
-                            </a>
-                            <?php 
-                                $discount_price=$product->price- $product->discount;
-                            ?>
-                            @if($discount_price < $product->price)
-                                <p class="mb-0" style="text-decoration: line-through;color: #b8b8b8">৳ {{ $product->price }}</p>
-                                <p class="font-weight-bold mb-0" style="color: #fca204">৳ {{ $discount_price }}</p>
-                            @else
-                            <br><br>    
-                                <p class="font-weight-bold mb-0" style="color: #fca204">৳ {{ $discount_price }}</p>
-                            @endif
-                                <p class="mb-0 prod_name"><a href="{{ route('frontend.single.product.page', $product->id) }}">{{ $product->title }}</a></p>
-                            <form action="" method="post">
-                                @csrf
-                                <input type="hidden" name="qty" value="1">
-                                <a class="quick_view" data-id="{{ $product->id }}">
-                                    <i class="fa-solid fa-magnifying-glass"></i>
-                                </a>
-                                <input type="submit" data-id="{{ $product->id }}" data-price="{{ $discount_price }}" data-qnt="1" class="btn btn-sm w-100 mb-2 add_cart_btn_direct" name="add_cart" value="কার্ট-এ যোগ করুন">
-                            </form>
+                @foreach ($products as $product)
+                    <div class="col-lg-3 col-md-6 col-sm-12 pb-1">
+                        <div class="card product-item border-0 mb-4">
+                            <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
+                                <img style="height:250px" class="img-fluid w-100" src="{{asset('images/galleries/'.$product->thumbnail)}}" alt="{{ $product->title }}">
+                            </div>
+                            <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
+                                <h6 class="text-truncate mb-3">{{ $product->title }}</h6>
+                                <div class="d-flex justify-content-center">
+                                    @if ($product->discount_price < $product->price)
+                                        <h6>{{$product->discount_price}}</h6><h6 class="text-muted ml-2"><del>{{$product->price}}</del></h6>
+                                    @else
+                                        <h6>{{$product->price}}</h6>
+                                    @endif
+                                    
+                                </div>
+                            </div>
+                            <div class="card-footer d-flex justify-content-between bg-light border">
+                                <a href="{{route('frontend.single.product.page', $product->id)}}" class="btn btn-sm text-dark p-0"><i class="fas fa-eye text-primary mr-1"></i>View Detail</a>
+                                
+                                <button class="btn btn-sm text-dark p-0 order_now_btn_direct"   data-price="{{ $product->price-$product->discount }}" data-id="{{ $product->id }}">
+                                    <i class="fa fa-receipt mr-1 text-success"></i> Order Now
+                                </button>
+                                
+                            </div>
                         </div>
                     </div>
                 @endforeach
             @else
                 <div class="row">
-                    <div class="col-12 text-center">
+                    <div class="col-12 text-center" style="width:100%; margin:auto; height:300px">
                         <h2 class="text-center">কোনো পণ্য পাওয়া যায়নি।</h2> 
                     </div>
                 </div>
             @endif
-            
         </div>
-    </div> 
+    </div>
 
-    @include('frontend.pages.quick_view')
-</section>
 @endsection
+
+

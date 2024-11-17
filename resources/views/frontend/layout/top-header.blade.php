@@ -39,26 +39,26 @@
         </div>
     </div> --}}
     <div class="row align-items-center py-3 px-xl-5">
-        <div class="logo">
+        <div class="logo text-center">
             @if (!empty($logo))
                 @if ($logo->image)
-                <a href="{{route('home')}}"><img src="{{asset('images/logo/' . $logo->image)}}" alt="" width="325 px" height="122 px"></a>
+                <a href="{{route('home')}}"><img src="{{asset('images/logo/' . $logo->image)}}" alt="" class="logo-img"></a>
                 @else
-                <a href="{{route('home')}}"><img src="{{asset('frontend/uploads/6649146b6febe.png')}}" alt=""></a>
+                <a href="{{route('home')}}"><img src="{{asset('frontend/uploads/6649146b6febe.png')}}" alt="" class="logo-img"></a>
                 @endif
             @else
-                <a href="{{route('home')}}"><img src="{{asset('frontend/uploads/6649146b6febe.png')}}" alt=""></a>
+                <a href="{{route('home')}}"><img src="{{asset('frontend/uploads/6649146b6febe.png')}}" alt="" class="logo-img"></a>
             @endif
-            
-            
         </div>
+        
         <div class="col-lg-6 col-6 text-left">
-            <form action="">
+            <form id="searchForm" method="get">
                 <div class="input-group">
-                    <input type="text" class="form-control" placeholder="Search for products">
+                    <input type="text" class="form-control" placeholder="Search for products" id="searchQuery">
                     <div class="input-group-append">
                         <span class="input-group-text bg-transparent text-primary">
-                            <i class="fa fa-search"></i>
+                          {{-- <i class="fa fa-search"></i> --}}
+                            <button type="submit" class="search-btn"><i class="fa fa-search"></i></button>
                         </span>
                     </div>
                 </div>

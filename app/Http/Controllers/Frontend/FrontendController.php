@@ -373,10 +373,6 @@ class FrontendController extends Controller
         ]);
         $additionalAddress = $request->input('additional_address');
        
-        $product_ids = $request->input('product_ids');
-        $quantities = $request->input('quantities');
-        $total = $request->input('total');
-        $delivery_charge=(int)$request->input('shipping_method');
        
         // Retrieve the last order_code
         $lastOrder = DB::table('customer_order')
@@ -397,7 +393,6 @@ class FrontendController extends Controller
     
         // Flag to track whether the order insertion was successful
         $isInserted = false;
-        $total_array=[];
      
   
        
@@ -625,21 +620,21 @@ class FrontendController extends Controller
     {
         $query = $request->input('query');
         $category = $request->input('category');
-        
+      
         // Perform your search logic here
         $results = DB::table('products')->where('status', 1);
 
-        if ($category) {
-            if ($category!=1) {
-                if ($category==4) {
-                    $results->whereNotNull('discount');
-                    // dd($all_products);
-                } else {
-                    $results->where('category_id', $category);
-                    // dd($all_products);
-                }
-            } 
-        }
+        // if ($category) {
+        //     if ($category!=1) {
+        //         if ($category==4) {
+        //             $results->whereNotNull('discount');
+        //             // dd($all_products);
+        //         } else {
+        //             $results->where('category_id', $category);
+        //             // dd($all_products);
+        //         }
+        //     } 
+        // }
 
         if ($query) {
             
@@ -648,9 +643,10 @@ class FrontendController extends Controller
 
         $products = $results->get();
         // dd($products);
-        $category = DB::table('category')->where('status', 1)->get();
+        $categories = DB::table('category')->where('status', 1)->get();
+        $subcategories = DB::table('subcategory')->where('status', 1)->get();
         $sub_title='search';
-        return view('frontend.pages.search_results', compact('products', 'category', 'sub_title'));
+        return view('frontend.pages.search_results', compact('products', 'category', 'sub_title', 'categories', 'subcategories'));
     }
 
     //checkout page

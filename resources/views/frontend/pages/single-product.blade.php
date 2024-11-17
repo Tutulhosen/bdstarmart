@@ -119,14 +119,14 @@
     <!-- Shop Detail End -->
 
     <!-- You May Also Like Section -->
-    <div class="container-fluid py-5">
-        <div class="text-center mb-4">
-            <h2 class="section-title px-5"><span class="px-2">You May Also Like</span></h2>
-        </div>
-        <div class="row px-xl-5">
-            <div class="col">
-                <div class="owl-carousel related-carousel">
-                    @if (!empty($related_product))
+    @if (!empty($related_product))
+        <div class="container-fluid py-5">
+            <div class="text-center mb-4">
+                <h2 class="section-title px-5"><span class="px-2">You May Also Like</span></h2>
+            </div>
+            <div class="row px-xl-5">
+                <div class="col">
+                    <div class="owl-carousel related-carousel">
                         @foreach ($related_product as $product)
                             <div class="card product-item border-0 mb-4">
                                 <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
@@ -151,13 +151,14 @@
                                 </div>
                             </div>
                         @endforeach
-                    @else
-                        <h2 style="text-align: center">No product found</h2>
-                    @endif
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    @else
+    <h2 style="text-align: center">No product found</h2>
+    @endif
+    
     <!-- Products End -->
 @endsection
 

@@ -44,7 +44,10 @@
     <div class="card p-4" style="max-width: 400px; width: 100%;">
         <div class="card-header text-center">
             <!-- Logo Image -->
-           <img src="{{asset('images/logo/' . $logo->image)}}" alt="" style="width: 80px; ">
+            @if (!empty($logo))
+            <img src="{{asset('images/logo/' . $logo->image)}}" alt="" style="width: 80px; ">
+                
+            @endif
         </div>
         <div class="card-body">
             <h4 class="card-title mb-4 text-center">Login</h4>

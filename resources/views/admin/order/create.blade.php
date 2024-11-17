@@ -228,8 +228,6 @@
             }
         });
 
-
-        // Handle product selection
         // Handle product selection
         $(document).on('click', '.suggestion-item', function() {
             var productId = $(this).data('id');
